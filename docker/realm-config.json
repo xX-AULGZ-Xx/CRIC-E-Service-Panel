@@ -1,0 +1,89 @@
+{
+  "realm": "cric-college",
+  "displayName": "CRIC College E-Services",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "roles": {
+    "realm": [
+      { "name": "admin", "description": "CRIC System Administrator" },
+      { "name": "teacher", "description": "CRIC College Instructor/Teacher" },
+      { "name": "staff", "description": "CRIC College Staff" },
+      { "name": "student", "description": "CRIC College Student" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "cric-portal",
+      "name": "CRIC E-Service Portal",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "cric-portal-secret-key",
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:3000/api/auth/callback/keycloak",
+        "http://127.0.0.1:3000/*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@cric.ac.th",
+      "firstName": "CRIC",
+      "lastName": "Administrator",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin", "staff"]
+    },
+    {
+      "username": "student",
+      "enabled": true,
+      "email": "student01@cric.ac.th",
+      "firstName": "Somchai",
+      "lastName": "Student",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "student123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["student"]
+    },
+    {
+      "username": "teacher",
+      "enabled": true,
+      "email": "teacher01@cric.ac.th",
+      "firstName": "Ajarn",
+      "lastName": "Prasert",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "teacher123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["teacher"]
+    }
+  ]
+}

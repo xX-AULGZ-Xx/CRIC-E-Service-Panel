@@ -1,0 +1,182 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import AppLauncher from '@/components/launcher/AppLauncher';
+import { UserSession, UserRole } from '@/types/service';
+import { 
+  ShieldAlert, 
+  GraduationCap, 
+  Briefcase, 
+  UserCheck, 
+  Settings, 
+  Search,
+  ExternalLink,
+  ChevronDown
+} from 'lucide-react';
+
+interface NavbarProps {
+  onRoleChange?: (role: UserRole) => void;
+  onSearchChange?: (query: string) => void;
+}
+
+export default function Navbar({ onRoleChange, onSearchChange }: NavbarProps) {
+  const [session, setSession] = useState<UserSession | null>(null);
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const fetchSession = async () => {
+    try {
+      const res = await fetch('/api/auth/session');
+      const data = await res.json();
+      if (data.success) {
+        setSession(data.data);
+      }
+    } catch (e) {
+      console.error('Failed to get session', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchSession();
+  }, []);
+
+  const handleRoleSwitch = async (newRole: UserRole) => {
+    try {
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSession(data.data);
+        setRoleDropdownOpen(false);
+        onRoleChange?.(newRole);
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error('Failed to switch role', e);
+    }
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    onSearchChange?.(e.target.value);
+  };
+
+  const getRoleBadge = (role?: UserRole) => {
+    switch (role) {
+      case 'admin':
+        return { label: 'Admin', color: 'bg-rose-500/10 text-rose-400 border-rose-500/30', icon: ShieldAlert };
+      case 'teacher':
+        return { label: 'Teacher', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', icon: GraduationCap };
+      case 'staff':
+        return { label: 'Staff', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30', icon: Briefcase };
+      default:
+        return { label: 'Student', color: 'bg-blue-500/10 text-blue-400 border-blue-500/30', icon: UserCheck };
+    }
+  };
+
+  const currentRoleBadge = getRoleBadge(session?.currentRole);
+  const RoleIcon = currentRoleBadge.icon;
+
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-neutral-800 bg-[#121314]/90 backdrop-blur-md px-4 lg:px-8 py-3">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        {/* Brand / Logo */}
+        <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
+              <span className="font-bold text-white text-lg tracking-wider">C</span>
+            </div>
+            <div>
+              <div className="font-semibold text-white tracking-tight text-[15px] flex items-center gap-1.5">
+                <span>CRIC E-Service</span>
+                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                  Panel
+                </span>
+              </div>
+              <p className="text-xs text-neutral-400 -mt-0.5 hidden sm:block">
+                ศูนย์บริการดิจิทัลวิทยาลัย CRIC
+              </p>
+            </div>
+          </Link>
+        </div>
+
+        {/* Global Search Bar */}
+        <div className="flex-1 max-w-md mx-2 sm:mx-6">
+          <div className="relative">
+            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearch}
+              placeholder="ค้นหาบริการภายในวิทยาลัย..."
+              className="w-full pl-9 pr-4 py-2 bg-neutral-900/90 border border-neutral-700/60 rounded-full text-xs sm:text-sm text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/60 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Right Action Icons: Role Switcher, Admin Button, 9-Dots Launcher, Profile */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Role Switcher (Simulate Keycloak RBAC) */}
+          <div className="relative">
+            <button
+              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-medium transition-all ${currentRoleBadge.color} hover:opacity-90`}
+              title="สลับบทบาทผู้ใช้งาน (RBAC Simulation)"
+            >
+              <RoleIcon className="w-3.5 h-3.5" />
+              <span className="capitalize hidden md:inline">{currentRoleBadge.label}</span>
+              <ChevronDown className="w-3 h-3 ml-0.5 opacity-60" />
+            </button>
+
+            {roleDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-[#1e1f20] border border-neutral-700/80 shadow-2xl py-2 z-50 text-neutral-200 animate-in fade-in zoom-in-95">
+                <div className="px-3 py-1.5 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-800">
+                  สลับบทบาท (Role View)
+                </div>
+                {(['student', 'teacher', 'staff', 'admin'] as UserRole[]).map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => handleRoleSwitch(role)}
+                    className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-neutral-800 transition-colors ${
+                      session?.currentRole === role ? 'text-blue-400 font-semibold bg-blue-500/10' : ''
+                    }`}
+                  >
+                    <span className="capitalize">{role}</span>
+                    {session?.currentRole === role && <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Admin Backoffice Button */}
+          {session?.currentRole === 'admin' && (
+            <Link
+              href="/admin/services"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-800/80 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-neutral-700 text-xs font-medium transition-colors"
+            >
+              <Settings className="w-3.5 h-3.5 text-blue-400" />
+              <span>Admin Panel</span>
+            </Link>
+          )}
+
+          {/* The Google 9-Dots App Launcher Icon */}
+          <AppLauncher currentRole={session?.currentRole} />
+
+          {/* User Profile Avatar */}
+          <div className="flex items-center gap-2 pl-1 border-l border-neutral-800">
+            <img
+              src={session?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+              alt={session?.displayName || 'User'}
+              className="w-8 h-8 rounded-full object-cover ring-2 ring-neutral-700"
+            />
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}

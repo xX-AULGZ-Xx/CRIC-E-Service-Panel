@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cric-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: cric_user
+      POSTGRES_PASSWORD: cric_password
+      POSTGRES_DB: cric_portal_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cric_user -d cric_portal_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.0
+    container_name: cric-keycloak
+    restart: always
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
+      KC_DB_USERNAME: cric_user
+      KC_DB_PASSWORD: cric_password
+      KC_HEALTH_ENABLED: "true"
+      KC_HTTP_RELATIVE_PATH: /
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docker/realm-config.json:/opt/keycloak/data/import/realm-config.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cric-portal
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://cric_user:cric_password@postgres:5432/cric_portal_db?schema=public"
+      KEYCLOAK_URL: "http://keycloak:8080"
+      KEYCLOAK_REALM: "cric-college"
+      KEYCLOAK_CLIENT_ID: "cric-portal"
+      KEYCLOAK_CLIENT_SECRET: "cric-portal-secret-key"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXTAUTH_SECRET: "cric-secure-jwt-secret-key-super-random-32char"
+    volumes:
+      - uploads_data:/app/public/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  uploads_data:

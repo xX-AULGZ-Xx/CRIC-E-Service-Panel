@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  sortOrder   Int       @default(0)
+  services    Service[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+model Service {
+  id                String         @id @default(cuid())
+  title             String
+  description       String?
+  url               String
+  iconUrl           String
+  categoryId        String?
+  category          Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  allowedRoles      String[]       @default([]) // e.g. ["student", "teacher", "staff", "admin"]
+  openInNewTab      Boolean        @default(true)
+  isActive          Boolean        @default(true)
+  isDefaultFavorite Boolean        @default(false)
+  sortOrder         Int            @default(0)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  userFavorites     UserFavorite[]
+
+  @@map("services")
+}
+
+model UserFavorite {
+  id        String   @id @default(cuid())
+  userId    String   // Keycloak sub or user id
+  serviceId String
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, serviceId])
+  @@map("user_favorites")
+}
