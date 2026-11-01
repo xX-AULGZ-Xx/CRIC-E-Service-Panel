@@ -20,6 +20,12 @@ const DEFAULT_SETTINGS = {
   keycloakRealm: 'cric-college',
   allowedEmailDomains: 'cric.ac.th, student.cric.ac.th',
   sessionTimeoutMinutes: 120,
+
+  // Google OAuth 2.0 Integration
+  googleAuthEnabled: false,
+  googleClientId: null,
+  googleClientSecret: null,
+  googleHostedDomain: 'cric.ac.th',
 };
 
 export async function GET() {
@@ -80,6 +86,12 @@ export async function PUT(req: NextRequest) {
         keycloakRealm: body.keycloakRealm?.trim(),
         allowedEmailDomains: body.allowedEmailDomains?.trim(),
         sessionTimeoutMinutes: Number(body.sessionTimeoutMinutes) || 120,
+
+        // Google OAuth 2.0 Fields
+        googleAuthEnabled: Boolean(body.googleAuthEnabled),
+        googleClientId: body.googleClientId !== undefined ? body.googleClientId?.trim() || null : undefined,
+        googleClientSecret: body.googleClientSecret !== undefined ? body.googleClientSecret?.trim() || null : undefined,
+        googleHostedDomain: body.googleHostedDomain !== undefined ? body.googleHostedDomain?.trim() || null : undefined,
       },
       create: {
         ...DEFAULT_SETTINGS,

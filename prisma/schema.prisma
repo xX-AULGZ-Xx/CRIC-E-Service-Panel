@@ -69,6 +69,13 @@ model SystemSetting {
   keycloakRealm             String   @default("cric-college")
   allowedEmailDomains       String   @default("cric.ac.th, student.cric.ac.th")
   sessionTimeoutMinutes     Int      @default(120)
+
+  // Google OAuth 2.0 Integration
+  googleAuthEnabled         Boolean  @default(false)
+  googleClientId            String?
+  googleClientSecret        String?
+  googleHostedDomain        String?  @default("cric.ac.th")
+
   updatedAt                 DateTime @updatedAt
 
   @@map("system_settings")

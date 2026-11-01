@@ -57,5 +57,12 @@ export interface SystemSetting {
   keycloakRealm: string;
   allowedEmailDomains: string;
   sessionTimeoutMinutes: number;
+
+  // Google OAuth 2.0 Integration
+  googleAuthEnabled: boolean;
+  googleClientId?: string | null;
+  googleClientSecret?: string | null;
+  googleHostedDomain?: string | null;
+
   updatedAt?: string | Date;
 }

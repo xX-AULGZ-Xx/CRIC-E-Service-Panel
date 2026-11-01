@@ -17,7 +17,11 @@ import {
   Mail,
   Phone,
   HelpCircle,
-  Sparkles
+  Eye,
+  EyeOff,
+  Copy,
+  ExternalLink,
+  Key
 } from 'lucide-react';
 
 export default function AdminSettingsManager() {
@@ -26,7 +30,9 @@ export default function AdminSettingsManager() {
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-  const [activeTab, setActiveTab] = useState<'branding' | 'behavior' | 'security'>('branding');
+  const [activeTab, setActiveTab] = useState<'branding' | 'behavior' | 'security' | 'google'>('branding');
+  const [showClientSecret, setShowClientSecret] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,6 +91,12 @@ export default function AdminSettingsManager() {
     }
   };
 
+  const handleCopy = (text: string, keyName: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(keyName);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!settings) return;
@@ -124,13 +136,17 @@ export default function AdminSettingsManager() {
 
   if (!settings) return null;
 
+  const originUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  const portalRedirectUri = `${originUrl}/api/auth/callback/google`;
+  const keycloakRedirectUri = 'http://localhost:8080/realms/cric-college/broker/google/endpoint';
+
   return (
     <div className="space-y-6">
       {/* Settings Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-neutral-800 pb-2">
+      <div className="flex items-center gap-2 border-b border-neutral-800 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab('branding')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
             activeTab === 'branding'
               ? 'bg-blue-600/20 text-blue-400 border border-blue-500/40'
               : 'text-neutral-400 hover:text-white hover:bg-neutral-850'
@@ -142,7 +158,7 @@ export default function AdminSettingsManager() {
 
         <button
           onClick={() => setActiveTab('behavior')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
             activeTab === 'behavior'
               ? 'bg-blue-600/20 text-blue-400 border border-blue-500/40'
               : 'text-neutral-400 hover:text-white hover:bg-neutral-850'
@@ -153,8 +169,23 @@ export default function AdminSettingsManager() {
         </button>
 
         <button
+          onClick={() => setActiveTab('google')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
+            activeTab === 'google'
+              ? 'bg-blue-600/20 text-blue-400 border border-blue-500/40'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-850'
+          }`}
+        >
+          <Key className="w-4 h-4 text-amber-400" />
+          <span>ตั้งค่า Google Auth Key (OAuth 2.0)</span>
+          {settings.googleAuthEnabled && (
+            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveTab('security')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
             activeTab === 'security'
               ? 'bg-blue-600/20 text-blue-400 border border-blue-500/40'
               : 'text-neutral-400 hover:text-white hover:bg-neutral-850'
@@ -185,6 +216,195 @@ export default function AdminSettingsManager() {
 
       {/* Main Settings Form */}
       <form onSubmit={handleSave} className="space-y-6">
+        {/* Tab: Google Auth Key (OAuth 2.0) */}
+        {activeTab === 'google' && (
+          <div className="space-y-6 animate-in fade-in">
+            {/* Google OAuth Switch Box */}
+            <div className={`p-6 rounded-3xl border transition-all ${
+              settings.googleAuthEnabled
+                ? 'bg-blue-950/20 border-blue-500/50'
+                : 'bg-neutral-900/60 border-neutral-800'
+            }`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-white p-1.5 flex items-center justify-center shrink-0 shadow-sm">
+                      <svg viewBox="0 0 24 24" className="w-full h-full">
+                        <path
+                          fill="#4285F4"
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                        />
+                        <path
+                          fill="#EA4335"
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-base font-semibold text-white">
+                      การเข้าสู่ระบบด้วย Google (Sign in with Google)
+                    </h3>
+                  </div>
+                  <p className="text-xs text-neutral-400">
+                    เปิดใช้งาน Google OAuth 2.0 สำหรับให้นักศึกษา, อาจารย์ และบุคลากรล็อกอินด้วยอีเมล Google Workspace ของวิทยาลัย (@cric.ac.th)
+                  </p>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.googleAuthEnabled}
+                    onChange={(e) => handleChange('googleAuthEnabled', e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-12 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+            </div>
+
+            {/* Google Credentials Box */}
+            <div className="p-6 rounded-3xl bg-neutral-900/60 border border-neutral-800 space-y-5">
+              <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                <Key className="w-5 h-5 text-amber-400" />
+                <span>Google OAuth 2.0 Credentials (Client ID & Client Secret)</span>
+              </h3>
+
+              <div className="space-y-4">
+                {/* Google Client ID */}
+                <div>
+                  <label className="block text-xs font-medium text-neutral-300 mb-1">
+                    Google Client ID *
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.googleClientId || ''}
+                    onChange={(e) => handleChange('googleClientId', e.target.value)}
+                    placeholder="เช่น 123456789012-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com"
+                    className="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-sm font-mono text-white placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-[11px] text-neutral-500 mt-1">
+                    Client ID ที่สร้างจาก Google Cloud Console (OAuth 2.0 Client IDs &gt; Web application)
+                  </p>
+                </div>
+
+                {/* Google Client Secret */}
+                <div>
+                  <label className="block text-xs font-medium text-neutral-300 mb-1">
+                    Google Client Secret *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showClientSecret ? 'text' : 'password'}
+                      value={settings.googleClientSecret || ''}
+                      onChange={(e) => handleChange('googleClientSecret', e.target.value)}
+                      placeholder="GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxx"
+                      className="w-full pl-3.5 pr-11 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-sm font-mono text-white placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowClientSecret(!showClientSecret)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
+                      title={showClientSecret ? 'ซ่อนรหัส' : 'แสดงรหัส'}
+                    >
+                      {showClientSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 mt-1">
+                    Client Secret สำหรับยืนยันตัวตนกับเซิร์ฟเวอร์ Google OAuth (เก็บเป็นความลับ)
+                  </p>
+                </div>
+
+                {/* Google Hosted Domain (HD) */}
+                <div>
+                  <label className="block text-xs font-medium text-neutral-300 mb-1">
+                    Hosted Domain Restriction (HD Domain)
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.googleHostedDomain || ''}
+                    onChange={(e) => handleChange('googleHostedDomain', e.target.value)}
+                    placeholder="cric.ac.th"
+                    className="w-full px-3.5 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-sm font-mono text-white placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-[11px] text-amber-400/90 mt-1">
+                    🔒 แนะนำระบุ <code>cric.ac.th</code> เพื่อบล็อกไม่ให้อีเมล <code>@gmail.com</code> ทั่วไปล็อกอินเข้าสู่ระบบได้
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Callback / Redirect URIs Box */}
+            <div className="p-6 rounded-3xl bg-neutral-900/60 border border-neutral-800 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-blue-400" />
+                    <span>Authorized Redirect URIs (สำหรับกรอกใน Google Cloud Console)</span>
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    คัดลอก URI ด้านล่างไปวางในช่อง <strong>Authorized redirect URIs</strong> บน Google Cloud Console
+                  </p>
+                </div>
+
+                <a
+                  href="https://console.cloud.google.com/apis/credentials"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hidden sm:inline-flex items-center gap-1 text-xs text-blue-400 hover:underline font-medium"
+                >
+                  <span>Google Cloud Console</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                {/* Portal URI */}
+                <div>
+                  <div className="text-xs text-neutral-300 mb-1 flex items-center justify-between">
+                    <span>1. CRIC E-Service Portal Callback URI:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(portalRedirectUri, 'portalUri')}
+                      className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                    >
+                      {copiedKey === 'portalUri' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedKey === 'portalUri' ? 'คัดลอกแล้ว!' : 'คัดลอก'}</span>
+                    </button>
+                  </div>
+                  <pre className="p-3 bg-neutral-950 border border-neutral-800 rounded-xl text-xs font-mono text-emerald-400 overflow-x-auto">
+                    {portalRedirectUri}
+                  </pre>
+                </div>
+
+                {/* Keycloak URI */}
+                <div>
+                  <div className="text-xs text-neutral-300 mb-1 flex items-center justify-between">
+                    <span>2. Keycloak Central IdP Identity Broker Endpoint:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(keycloakRedirectUri, 'keycloakUri')}
+                      className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                    >
+                      {copiedKey === 'keycloakUri' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedKey === 'keycloakUri' ? 'คัดลอกแล้ว!' : 'คัดลอก'}</span>
+                    </button>
+                  </div>
+                  <pre className="p-3 bg-neutral-950 border border-neutral-800 rounded-xl text-xs font-mono text-emerald-400 overflow-x-auto">
+                    {keycloakRedirectUri}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tab 1: Branding & College Info */}
         {activeTab === 'branding' && (
           <div className="space-y-6 animate-in fade-in">
