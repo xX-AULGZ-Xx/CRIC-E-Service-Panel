@@ -213,39 +213,26 @@ export default function AdminServicesManager() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0e0f10] text-neutral-100 p-4 sm:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Navigation & Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-neutral-800">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="p-2 rounded-xl bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors"
-              title="กลับหน้า Portal"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                <span>จัดการบริการภายในวิทยาลัย</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                  Admin Backoffice
-                </span>
-              </h1>
-              <p className="text-xs sm:text-sm text-neutral-400">
-                เพิ่ม/แก้ไข/ลบ บริการต่างๆ ในหน้า Panel และเมนู 9 จุด (App Launcher) พร้อมกำหนดสิทธิ์ (RBAC)
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.02]"
-          >
-            <Plus className="w-4 h-4" />
-            <span>เพิ่มบริการใหม่</span>
-          </button>
+    <div className="space-y-6">
+      {/* Top Action Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-white">
+            รายการบริการทั้งหมดในระบบ
+          </h2>
+          <p className="text-xs text-neutral-400">
+            กำหนดค่าบริการ, ไอคอน, สิทธิ์การเข้าถึง (RBAC), และรายการโปรดเริ่มต้น
+          </p>
         </div>
+
+        <button
+          onClick={openAddModal}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm shadow-lg shadow-blue-600/20 transition-all hover:scale-[1.02]"
+        >
+          <Plus className="w-4 h-4" />
+          <span>เพิ่มบริการใหม่</span>
+        </button>
+      </div>
 
         {/* Search Bar & Summary Stats */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -636,6 +623,5 @@ export default function AdminServicesManager() {
           </div>
         )}
       </div>
-    </div>
   );
 }

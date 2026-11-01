@@ -50,3 +50,26 @@ model UserFavorite {
   @@unique([userId, serviceId])
   @@map("user_favorites")
 }
+
+model SystemSetting {
+  id                        String   @id @default("default")
+  collegeNameTh             String   @default("วิทยาลัยอาชีวศึกษา CRIC")
+  collegeNameEn             String   @default("CRIC Vocational College")
+  portalTitle               String   @default("CRIC E-Service Panel")
+  portalSubtitle            String   @default("ศูนย์รวมบริการดิจิทัลสำหรับนักศึกษาและบุคลากร")
+  logoUrl                   String?
+  contactEmail              String?  @default("support@cric.ac.th")
+  contactPhone              String?  @default("02-123-4567")
+  helpdeskUrl               String?  @default("https://helpdesk.cric.ac.th")
+  footerText                String   @default("© 2026 CRIC College. All rights reserved.")
+  maintenanceMode           Boolean  @default(false)
+  maintenanceMessage        String   @default("ระบบกำลังอยู่ระหว่างการปรับปรุงชั่วคราว เพื่อพัฒนาประสิทธิภาพการบริการ ขออภัยในความไม่สะดวก")
+  allowUserCustomFavorites  Boolean  @default(true)
+  showEmbedWidgetSnippet    Boolean  @default(true)
+  keycloakRealm             String   @default("cric-college")
+  allowedEmailDomains       String   @default("cric.ac.th, student.cric.ac.th")
+  sessionTimeoutMinutes     Int      @default(120)
+  updatedAt                 DateTime @updatedAt
+
+  @@map("system_settings")
+}

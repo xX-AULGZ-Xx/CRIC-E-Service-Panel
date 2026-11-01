@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AppLauncher from '@/components/launcher/AppLauncher';
-import { UserSession, UserRole } from '@/types/service';
+import { UserSession, UserRole, SystemSetting } from '@/types/service';
 import { 
   ShieldAlert, 
   GraduationCap, 
@@ -16,11 +16,12 @@ import {
 } from 'lucide-react';
 
 interface NavbarProps {
+  settings?: SystemSetting | null;
   onRoleChange?: (role: UserRole) => void;
   onSearchChange?: (query: string) => void;
 }
 
-export default function Navbar({ onRoleChange, onSearchChange }: NavbarProps) {
+export default function Navbar({ settings, onRoleChange, onSearchChange }: NavbarProps) {
   const [session, setSession] = useState<UserSession | null>(null);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -87,18 +88,26 @@ export default function Navbar({ onRoleChange, onSearchChange }: NavbarProps) {
         {/* Brand / Logo */}
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
-              <span className="font-bold text-white text-lg tracking-wider">C</span>
-            </div>
+            {settings?.logoUrl ? (
+              <img
+                src={settings.logoUrl}
+                alt="Logo"
+                className="w-10 h-10 rounded-xl object-contain bg-neutral-900 border border-neutral-800 p-1 group-hover:scale-105 transition-transform duration-200"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
+                <span className="font-bold text-white text-lg tracking-wider">C</span>
+              </div>
+            )}
             <div>
               <div className="font-semibold text-white tracking-tight text-[15px] flex items-center gap-1.5">
-                <span>CRIC E-Service</span>
+                <span>{settings?.portalTitle || 'CRIC E-Service'}</span>
                 <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
                   Panel
                 </span>
               </div>
               <p className="text-xs text-neutral-400 -mt-0.5 hidden sm:block">
-                ศูนย์บริการดิจิทัลวิทยาลัย CRIC
+                {settings?.collegeNameTh || 'ศูนย์บริการดิจิทัลวิทยาลัย CRIC'}
               </p>
             </div>
           </Link>

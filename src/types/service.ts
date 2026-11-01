@@ -38,3 +38,24 @@ export interface UserSession {
   roles: UserRole[];
   currentRole: UserRole;
 }
+
+export interface SystemSetting {
+  id: string;
+  collegeNameTh: string;
+  collegeNameEn: string;
+  portalTitle: string;
+  portalSubtitle: string;
+  logoUrl: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  helpdeskUrl: string | null;
+  footerText: string;
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  allowUserCustomFavorites: boolean;
+  showEmbedWidgetSnippet: boolean;
+  keycloakRealm: string;
+  allowedEmailDomains: string;
+  sessionTimeoutMinutes: number;
+  updatedAt?: string | Date;
+}

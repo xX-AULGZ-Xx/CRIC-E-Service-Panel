@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
-import { ServiceItem, UserSession, UserRole } from '@/types/service';
+import MaintenanceScreen from '@/components/portal/MaintenanceScreen';
+import { ServiceItem, UserSession, SystemSetting } from '@/types/service';
 import { 
   Star, 
   ExternalLink, 
@@ -11,15 +13,17 @@ import {
   Layers, 
   Copy, 
   Check, 
-  ShieldCheck, 
-  GraduationCap, 
   Settings,
-  Globe
+  Globe,
+  AlertTriangle,
+  Mail,
+  Phone
 } from 'lucide-react';
 
 export default function PortalDashboard() {
   const [session, setSession] = useState<UserSession | null>(null);
   const [services, setServices] = useState<ServiceItem[]>([]);
+  const [settings, setSettings] = useState<SystemSetting | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -29,15 +33,18 @@ export default function PortalDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [sessRes, srvRes] = await Promise.all([
+      const [sessRes, srvRes, setRes] = await Promise.all([
         fetch('/api/auth/session'),
         fetch('/api/v1/services'),
+        fetch('/api/v1/settings'),
       ]);
       const sessData = await sessRes.json();
       const srvData = await srvRes.json();
+      const setData = await setRes.json();
 
       if (sessData.success) setSession(sessData.data);
       if (srvData.success) setServices(srvData.data);
+      if (setData.success) setSettings(setData.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -75,6 +82,11 @@ export default function PortalDashboard() {
     setTimeout(() => setCopiedEmbed(false), 2000);
   };
 
+  // If in maintenance mode and user is not an Admin, display Maintenance Screen
+  if (!loading && settings?.maintenanceMode && session?.currentRole !== 'admin') {
+    return <MaintenanceScreen settings={settings} />;
+  }
+
   // Filter services
   const filteredServices = services.filter((srv) => {
     const matchesSearch =
@@ -94,7 +106,6 @@ export default function PortalDashboard() {
 
   const favorites = services.filter((s) => s.isFavorite);
 
-  // Extract unique categories from existing services
   const categories = Array.from(
     new Set(
       services
@@ -106,7 +117,25 @@ export default function PortalDashboard() {
   return (
     <div className="min-h-screen bg-[#0e0f10] text-neutral-100 flex flex-col selection:bg-blue-600 selection:text-white">
       {/* Top Navbar with Google 9-dots Launcher */}
-      <Navbar onSearchChange={(q) => setSearchQuery(q)} />
+      <Navbar settings={settings} onSearchChange={(q) => setSearchQuery(q)} />
+
+      {/* Admin Maintenance Mode Notice Banner */}
+      {settings?.maintenanceMode && session?.currentRole === 'admin' && (
+        <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2.5 text-xs text-amber-300 flex items-center justify-between">
+          <div className="flex items-center gap-2 max-w-4xl mx-auto w-full">
+            <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />
+            <span>
+              <strong>แจ้งเตือนผู้ดูแลระบบ:</strong> ขณะนี้กำลังเปิดโหมดปิดปรับปรุงระบบ (Maintenance Mode) ผู้ใช้ทั่วไปจะไม่สามารถเข้าใช้งานหน้า Portal ได้
+            </span>
+            <Link
+              href="/admin/settings"
+              className="ml-auto underline font-semibold text-white hover:text-amber-200"
+            >
+              แก้ไขการตั้งค่า
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Main Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -115,7 +144,7 @@ export default function PortalDashboard() {
           <div className="relative z-10 max-w-2xl space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>CRIC Digital College Ecosystem</span>
+              <span>{settings?.collegeNameTh || 'CRIC Digital College Ecosystem'}</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white">
@@ -123,27 +152,29 @@ export default function PortalDashboard() {
             </h1>
 
             <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
-              ศูนย์รวมบริการดิจิทัลวิทยาลัย CRIC เข้าสู่ระบบเพียงครั้งเดียว (Single Sign-On)
-              เพื่อเข้าใช้งานระบบและบริการภายในทั้งหมดได้อย่างสะดวก รวดเร็ว และปลอดภัย
+              {settings?.portalSubtitle ||
+                'ศูนย์รวมบริการดิจิทัลวิทยาลัย CRIC เข้าสู่ระบบเพียงครั้งเดียว (Single Sign-On) เพื่อเข้าใช้งานระบบและบริการภายในทั้งหมดได้อย่างสะดวก รวดเร็ว และปลอดภัย'}
             </p>
 
             <div className="pt-2 flex flex-wrap items-center gap-3">
-              <button
-                onClick={() => setShowEmbedModal(true)}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-neutral-200 border border-neutral-700 text-xs font-medium transition-all"
-              >
-                <Code className="w-3.5 h-3.5 text-blue-400" />
-                <span>โค้ด 9-Dots Launcher สำหรับเว็บระบบลูก</span>
-              </button>
+              {settings?.showEmbedWidgetSnippet !== false && (
+                <button
+                  onClick={() => setShowEmbedModal(true)}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-neutral-200 border border-neutral-700 text-xs font-medium transition-all"
+                >
+                  <Code className="w-3.5 h-3.5 text-blue-400" />
+                  <span>โค้ด 9-Dots Launcher สำหรับเว็บระบบลูก</span>
+                </button>
+              )}
 
               {session?.currentRole === 'admin' && (
-                <a
+                <Link
                   href="/admin/services"
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-600/80 hover:bg-blue-600 text-white text-xs font-medium transition-all"
                 >
                   <Settings className="w-3.5 h-3.5" />
-                  <span>จัดการบริการ (Admin Setup)</span>
-                </a>
+                  <span>จัดการบริการ & ตั้งค่า (Admin Panel)</span>
+                </Link>
               )}
             </div>
           </div>
@@ -260,13 +291,13 @@ export default function PortalDashboard() {
                   : 'ยังไม่มีบริการที่ตรงกับเงื่อนไขการค้นหาในบทบาทของคุณ'}
               </p>
               {session?.currentRole === 'admin' && (
-                <a
+                <Link
                   href="/admin/services"
                   className="mt-4 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium inline-flex items-center gap-1.5"
                 >
                   <Settings className="w-3.5 h-3.5" />
                   ไปที่หน้า Admin Setup
-                </a>
+                </Link>
               )}
             </div>
           ) : (
@@ -396,6 +427,47 @@ export default function PortalDashboard() {
           </div>
         )}
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-neutral-800 bg-[#121314] py-6 px-4 sm:px-8 text-neutral-400 text-xs mt-12">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p>{settings?.footerText || '© 2026 CRIC College. All rights reserved.'}</p>
+            <p className="text-neutral-500 text-[11px] mt-0.5">
+              {settings?.collegeNameTh} ({settings?.collegeNameEn})
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4 text-neutral-400">
+            {settings?.contactEmail && (
+              <a
+                href={`mailto:${settings.contactEmail}`}
+                className="hover:text-white flex items-center gap-1 transition-colors"
+              >
+                <Mail className="w-3.5 h-3.5 text-neutral-500" />
+                <span>{settings.contactEmail}</span>
+              </a>
+            )}
+            {settings?.contactPhone && (
+              <span className="flex items-center gap-1">
+                <Phone className="w-3.5 h-3.5 text-neutral-500" />
+                <span>{settings.contactPhone}</span>
+              </span>
+            )}
+            {settings?.helpdeskUrl && (
+              <a
+                href={settings.helpdeskUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-blue-400 flex items-center gap-1 transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
+                <span>Helpdesk</span>
+              </a>
+            )}
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
