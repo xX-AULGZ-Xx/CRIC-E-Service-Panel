@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUserSession, DEFAULT_USERS } from '@/lib/auth';
+import { getCurrentUserSession, DEFAULT_USERS, isAuthenticatedUser } from '@/lib/auth';
 import { UserRole } from '@/types/service';
 
 export async function GET() {
   const session = await getCurrentUserSession();
+  const isLoggedIn = await isAuthenticatedUser();
   return NextResponse.json({
     success: true,
     data: session,
+    isLoggedIn,
     availableRoles: Object.keys(DEFAULT_USERS),
   });
 }

@@ -51,6 +51,12 @@ export async function getCurrentUserSession(): Promise<UserSession> {
   return DEFAULT_USERS.admin;
 }
 
+export async function isAuthenticatedUser(): Promise<boolean> {
+  const cookieStore = await cookies();
+  const loggedInCookie = cookieStore.get('cric_logged_in')?.value;
+  return loggedInCookie === 'true';
+}
+
 export function isUserAuthorizedForService(userRoles: string[], serviceAllowedRoles: string[]): boolean {
   // If service has no specific roles assigned, it's public to all authenticated users
   if (!serviceAllowedRoles || serviceAllowedRoles.length === 0) {
