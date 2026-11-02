@@ -49,8 +49,15 @@ export async function GET(req: NextRequest) {
           },
         },
       });
-      // Sync to local backup
-      await writeLocalServices(services);
+      // Sync to local backup if not empty, otherwise fallback to local
+      if (services.length > 0) {
+        await writeLocalServices(services);
+      } else {
+        const local = await readLocalServices();
+        if (local.length > 0) {
+          services = local;
+        }
+      }
     } catch (dbErr: any) {
       console.warn('Database query failed, reading from local storage:', dbErr.message);
       services = await readLocalServices();
