@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSystemSettings } from '@/lib/settings';
+import { prisma } from '@/lib/prisma';
+import { findUserByEmail, recordUserLogin, readLocalUsers, writeLocalUsers, UserEntity } from '@/lib/users';
 import { UserRole, UserSession } from '@/types/service';
 import fs from 'fs';
 import path from 'path';
@@ -98,39 +100,106 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Determine user role
+    // Determine user role & sync with User database
     let assignedRole: UserRole = 'student';
 
-    // Check Master Admin in data/admin.json
-    const adminFilePath = path.join(process.cwd(), 'data', 'admin.json');
-    let masterAdmin: any = null;
-    if (fs.existsSync(adminFilePath)) {
-      try {
-        masterAdmin = JSON.parse(fs.readFileSync(adminFilePath, 'utf-8'));
-      } catch {}
-    }
+    const existingDbUser = await findUserByEmail(email);
 
-    if (masterAdmin && (email === masterAdmin.email?.toLowerCase().trim() || email === 'admin@' + requiredHd)) {
-      assignedRole = 'admin';
-    } else if (email.startsWith('admin@') || email.includes('.admin@')) {
-      assignedRole = 'admin';
-    } else if (
-      email.startsWith('teacher') || 
-      email.startsWith('ajarn') || 
-      email.startsWith('kru') || 
-      email.includes('.t@') ||
-      email.includes('teacher.') ||
-      email.includes('ajarn.')
-    ) {
-      assignedRole = 'teacher';
-    } else if (
-      email.startsWith('staff') || 
-      email.includes('staff.') ||
-      email.includes('officer.')
-    ) {
-      assignedRole = 'staff';
+    if (existingDbUser) {
+      if (!existingDbUser.isActive) {
+        return redirectToLoginWithError('บัญชีผู้ใช้งานนี้ถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
+      }
+      assignedRole = existingDbUser.role as UserRole;
+
+      // Update avatar and last login
+      try {
+        await prisma.user.update({
+          where: { id: existingDbUser.id },
+          data: {
+            displayName: name || existingDbUser.displayName,
+            avatarUrl: picture || existingDbUser.avatarUrl,
+            lastLoginAt: new Date(),
+          },
+        });
+      } catch {
+        const local = await readLocalUsers();
+        const idx = local.findIndex((u) => u.email.toLowerCase() === email);
+        if (idx !== -1) {
+          local[idx].displayName = name || local[idx].displayName;
+          local[idx].avatarUrl = picture || local[idx].avatarUrl;
+          local[idx].lastLoginAt = new Date();
+          await writeLocalUsers(local);
+        }
+      }
     } else {
-      assignedRole = 'student';
+      // Check Master Admin in data/admin.json
+      const adminFilePath = path.join(process.cwd(), 'data', 'admin.json');
+      let masterAdmin: any = null;
+      if (fs.existsSync(adminFilePath)) {
+        try {
+          masterAdmin = JSON.parse(fs.readFileSync(adminFilePath, 'utf-8'));
+        } catch {}
+      }
+
+      if (masterAdmin && (email === masterAdmin.email?.toLowerCase().trim() || email === 'admin@' + requiredHd)) {
+        assignedRole = 'admin';
+      } else if (email.startsWith('admin@') || email.includes('.admin@')) {
+        assignedRole = 'admin';
+      } else if (
+        email.startsWith('teacher') || 
+        email.startsWith('ajarn') || 
+        email.startsWith('kru') || 
+        email.includes('.t@') ||
+        email.includes('teacher.') ||
+        email.includes('ajarn.')
+      ) {
+        assignedRole = 'teacher';
+      } else if (
+        email.startsWith('staff') || 
+        email.includes('staff.') ||
+        email.includes('officer.')
+      ) {
+        assignedRole = 'staff';
+      } else {
+        assignedRole = 'student';
+      }
+
+      // Auto-create user in database
+      const newUsername = email.split('@')[0];
+      try {
+        await prisma.user.create({
+          data: {
+            username: newUsername,
+            email: email,
+            displayName: name,
+            role: assignedRole,
+            avatarUrl: picture,
+            isActive: true,
+            authProvider: 'google',
+            lastLoginAt: new Date(),
+          },
+        });
+      } catch (dbErr: any) {
+        console.warn('DB create on Google login failed, writing local backup:', dbErr.message);
+        const newUser: UserEntity = {
+          id: `usr_${Date.now()}`,
+          username: newUsername,
+          email: email,
+          passwordHash: null,
+          displayName: name,
+          department: null,
+          role: assignedRole,
+          avatarUrl: picture,
+          isActive: true,
+          authProvider: 'google',
+          lastLoginAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        const local = await readLocalUsers();
+        local.unshift(newUser);
+        await writeLocalUsers(local);
+      }
     }
 
     const roles: UserRole[] = assignedRole === 'admin' 

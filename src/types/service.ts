@@ -67,3 +67,18 @@ export interface SystemSetting {
 
   updatedAt?: string | Date;
 }
+
+export interface UserAccount {
+  id: string;
+  username: string;
+  email: string;
+  displayName: string;
+  department: string | null;
+  role: UserRole;
+  avatarUrl: string | null;
+  isActive: boolean;
+  authProvider: 'local' | 'google';
+  lastLoginAt: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}

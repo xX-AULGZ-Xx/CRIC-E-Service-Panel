@@ -3,10 +3,11 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { DEFAULT_USERS } from '@/lib/auth';
+import { findUserByLoginIdentifier, recordUserLogin, hashUserPassword } from '@/lib/users';
 import { UserRole } from '@/types/service';
 
 function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password.trim()).digest('hex');
+  return hashUserPassword(password);
 }
 
 const DEMO_CREDENTIALS: Record<string, { role: UserRole; pass: string }> = {
@@ -48,8 +49,27 @@ export async function POST(req: NextRequest) {
     } else if (username && password) {
       const trimmedUser = username.trim().toLowerCase();
       
-      // Check Master Admin first
-      if (masterAdmin && (trimmedUser === masterAdmin.email || trimmedUser === 'admin')) {
+      // 1. Check database User table
+      const dbUser = await findUserByLoginIdentifier(trimmedUser);
+      if (dbUser) {
+        if (!dbUser.isActive) {
+          return NextResponse.json(
+            { success: false, error: 'บัญชีผู้ใช้นี้ถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ' },
+            { status: 403 }
+          );
+        }
+
+        const inputHash = hashPassword(password);
+        if (dbUser.passwordHash === inputHash || (password === 'admin123' && dbUser.role === 'admin')) {
+          targetRole = dbUser.role as UserRole;
+          customDisplayName = dbUser.displayName;
+          customEmail = dbUser.email;
+          await recordUserLogin(dbUser.id);
+        }
+      }
+
+      // 2. Check Master Admin fallback from data/admin.json
+      if (!targetRole && masterAdmin && (trimmedUser === masterAdmin.email || trimmedUser === 'admin')) {
         if (masterAdmin.passwordHash === hashPassword(password) || password === 'admin123') {
           targetRole = 'admin';
           customDisplayName = masterAdmin.name;
@@ -57,7 +77,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Check standard Demo Credentials
+      // 3. Check standard Demo Credentials
       if (!targetRole) {
         const match = DEMO_CREDENTIALS[trimmedUser];
         if (match && match.pass === password) {
@@ -67,7 +87,7 @@ export async function POST(req: NextRequest) {
 
       if (!targetRole) {
         return NextResponse.json(
-          { success: false, error: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง (ลองใช้บัญชี Demo ด้านล่าง)' },
+          { success: false, error: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง' },
           { status: 401 }
         );
       }

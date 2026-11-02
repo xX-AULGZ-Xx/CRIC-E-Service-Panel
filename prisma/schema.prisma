@@ -81,3 +81,21 @@ model SystemSetting {
 
   @@map("system_settings")
 }
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String?
+  displayName  String
+  department   String?
+  role         String    @default("student") // admin | teacher | staff | student
+  avatarUrl    String?
+  isActive     Boolean   @default(true)
+  authProvider String    @default("local") // local | google
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("users")
+}

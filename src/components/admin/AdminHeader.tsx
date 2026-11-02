@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowLeft, Layers, Sliders, ShieldAlert, Lock, ArrowRight, Cpu } from 'lucide-react';
+import { ArrowLeft, Layers, Sliders, ShieldAlert, Lock, ArrowRight, Cpu, Users } from 'lucide-react';
 import ThemeToggleButton from '@/components/theme/ThemeToggleButton';
 import { UserSession } from '@/types/service';
 
@@ -23,6 +23,7 @@ export default function AdminHeader() {
   }, []);
 
   const isServicesActive = pathname.startsWith('/admin/services') || pathname === '/admin';
+  const isUsersActive = pathname.startsWith('/admin/users');
   const isSettingsActive = pathname.startsWith('/admin/settings');
   const isIntegrationActive = pathname.startsWith('/admin/integration');
 
@@ -93,6 +94,18 @@ export default function AdminHeader() {
         >
           <Layers className="w-4 h-4" />
           <span>จัดการบริการ (Services)</span>
+        </Link>
+
+        <Link
+          href="/admin/users"
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
+            isUsersActive
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
+              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-850'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>จัดการผู้ใช้งาน (Users)</span>
         </Link>
 
         <Link
