@@ -151,7 +151,7 @@ export default function AdminSettingsManager() {
 
   const originUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
   const portalRedirectUri = `${originUrl}/api/auth/callback/google`;
-  const keycloakRedirectUri = 'http://localhost:8080/realms/cric-college/broker/google/endpoint';
+  const keycloakRedirectUri = 'https://sso.cric.ac.th/realms/cric-college/broker/google/endpoint';
 
   return (
     <div className="space-y-6">
