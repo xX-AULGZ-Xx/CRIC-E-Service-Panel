@@ -35,6 +35,9 @@
       ],
       "publicClient": false,
       "protocol": "openid-connect",
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": true,
@@ -57,6 +60,9 @@
       ],
       "publicClient": false,
       "protocol": "openid-connect",
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": true,
@@ -72,6 +78,7 @@
       "redirectUris": [
         "https://rcms.cric.ac.th/*",
         "https://rcms.cric.ac.th/auth/callback",
+        "https://panel.cric.ac.th/*",
         "http://localhost:3006/*",
         "http://localhost:3006/auth/callback",
         "http://localhost:8002/*"
@@ -81,6 +88,9 @@
       ],
       "publicClient": false,
       "protocol": "openid-connect",
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": true,
