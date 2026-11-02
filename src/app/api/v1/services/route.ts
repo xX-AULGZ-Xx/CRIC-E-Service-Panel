@@ -7,16 +7,28 @@ import path from 'path';
 const DATA_DIR = path.join(process.cwd(), 'data');
 const SERVICES_FILE = path.join(DATA_DIR, 'services.json');
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+function getCorsHeaders(req: NextRequest) {
+  const origin = req.headers.get('origin') || '';
+  const isAllowedOrigin = 
+    origin.endsWith('.cric.ac.th') || 
+    origin === 'https://cric.ac.th' ||
+    origin.includes('localhost') || 
+    origin.includes('127.0.0.1');
 
-export async function OPTIONS() {
+  const allowedOrigin = isAllowedOrigin ? origin : (origin || '*');
+
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Credentials': isAllowedOrigin ? 'true' : 'false',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+}
+
+export async function OPTIONS(req: NextRequest) {
   return new NextResponse(null, {
     status: 204,
-    headers: corsHeaders,
+    headers: getCorsHeaders(req),
   });
 }
 
@@ -39,6 +51,7 @@ async function writeLocalServices(data: any[]) {
 }
 
 export async function GET(req: NextRequest) {
+  const corsHeaders = getCorsHeaders(req);
   try {
     const { searchParams } = new URL(req.url);
     const session = await getCurrentUserSession();
