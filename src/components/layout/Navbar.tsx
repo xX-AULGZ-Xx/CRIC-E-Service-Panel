@@ -164,38 +164,40 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
 
         {/* Right Action Icons: Role Switcher, Admin Button, 9-Dots Launcher, Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Role Switcher (Simulate Keycloak RBAC) */}
-          <div className="relative">
-            <button
-              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-medium transition-all ${currentRoleBadge.color} hover:opacity-90`}
-              title="สลับบทบาทผู้ใช้งาน (RBAC Simulation)"
-            >
-              <RoleIcon className="w-3.5 h-3.5" />
-              <span className="capitalize hidden md:inline">{currentRoleBadge.label}</span>
-              <ChevronDown className="w-3 h-3 ml-0.5 opacity-60" />
-            </button>
+          {/* Role Switcher (Simulate Keycloak RBAC - Only in Demo/Test Mode) */}
+          {settings?.demoModeEnabled !== false && (
+            <div className="relative">
+              <button
+                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-medium transition-all ${currentRoleBadge.color} hover:opacity-90`}
+                title="สลับบทบาทผู้ใช้งาน (RBAC Simulation)"
+              >
+                <RoleIcon className="w-3.5 h-3.5" />
+                <span className="capitalize hidden md:inline">{currentRoleBadge.label}</span>
+                <ChevronDown className="w-3 h-3 ml-0.5 opacity-60" />
+              </button>
 
-            {roleDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-[#1e1f20] border border-neutral-700/80 shadow-2xl py-2 z-50 text-neutral-200 animate-in fade-in zoom-in-95">
-                <div className="px-3 py-1.5 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-800">
-                  สลับบทบาท (Role View)
+              {roleDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-[#1e1f20] border border-neutral-700/80 shadow-2xl py-2 z-50 text-neutral-200 animate-in fade-in zoom-in-95">
+                  <div className="px-3 py-1.5 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-800">
+                    สลับบทบาท (Role View)
+                  </div>
+                  {(['student', 'teacher', 'staff', 'admin'] as UserRole[]).map((role) => (
+                    <button
+                      key={role}
+                      onClick={() => handleRoleSwitch(role)}
+                      className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-neutral-800 transition-colors ${
+                        session?.currentRole === role ? 'text-blue-400 font-semibold bg-blue-500/10' : ''
+                      }`}
+                    >
+                      <span className="capitalize">{role}</span>
+                      {session?.currentRole === role && <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>}
+                    </button>
+                  ))}
                 </div>
-                {(['student', 'teacher', 'staff', 'admin'] as UserRole[]).map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => handleRoleSwitch(role)}
-                    className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-neutral-800 transition-colors ${
-                      session?.currentRole === role ? 'text-blue-400 font-semibold bg-blue-500/10' : ''
-                    }`}
-                  >
-                    <span className="capitalize">{role}</span>
-                    {session?.currentRole === role && <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Admin Backoffice Button */}
           {session?.currentRole === 'admin' && (

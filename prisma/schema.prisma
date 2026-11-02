@@ -66,6 +66,7 @@ model SystemSetting {
   maintenanceMessage        String   @default("ระบบกำลังอยู่ระหว่างการปรับปรุงชั่วคราว เพื่อพัฒนาประสิทธิภาพการบริการ ขออภัยในความไม่สะดวก")
   allowUserCustomFavorites  Boolean  @default(true)
   showEmbedWidgetSnippet    Boolean  @default(true)
+  demoModeEnabled           Boolean  @default(true)
   keycloakRealm             String   @default("cric-college")
   allowedEmailDomains       String   @default("cric.ac.th, student.cric.ac.th")
   sessionTimeoutMinutes     Int      @default(120)

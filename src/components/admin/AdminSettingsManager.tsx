@@ -632,6 +632,32 @@ export default function AdminSettingsManager() {
               <div className="space-y-3">
                 <label className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-950 border border-neutral-800 cursor-pointer hover:border-neutral-700">
                   <div className="space-y-0.5 pr-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white block">
+                        เปิดใช้งานโหมดทดสอบ / บัญชีตัวอย่าง (Test & Demo Mode)
+                      </span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                        settings.demoModeEnabled
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                          : 'bg-neutral-800 text-neutral-400 border-neutral-700'
+                      }`}>
+                        {settings.demoModeEnabled ? 'เปิด (Testing)' : 'ปิด (Production)'}
+                      </span>
+                    </div>
+                    <span className="text-xs text-neutral-400 block">
+                      เมื่อเปิด: จะแสดงกล่องบัญชีทดสอบ (Demo Users) บนหน้า Login และปุ่มสลับบทบาท (Role Switcher) บน Navbar | เมื่อปิด: จะซ่อนบัญชีทดสอบทั้งหมดและเข้าสู่โหมดใช้งานจริง (Production)
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settings.demoModeEnabled}
+                    onChange={(e) => handleChange('demoModeEnabled', e.target.checked)}
+                    className="w-5 h-5 rounded text-blue-600 bg-neutral-900 border-neutral-700"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-950 border border-neutral-800 cursor-pointer hover:border-neutral-700">
+                  <div className="space-y-0.5 pr-4">
                     <span className="text-sm font-medium text-white block">
                       อนุญาตให้ผู้ใช้ปรับแต่งรายการโปรดส่วนบุคคล (Personal Favorites)
                     </span>

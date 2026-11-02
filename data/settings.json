@@ -1,7 +1,7 @@
 {
   "id": "default",
-  "collegeNameTh": "วิทยาลัยอาชีวศึกษา CRIC",
-  "collegeNameEn": "CRIC Vocational College",
+  "collegeNameTh": "วิทยาลัยการอาชีพเชียงราย",
+  "collegeNameEn": "Chiangrai Industrial And Community Education College",
   "portalTitle": "CRIC E-Service Panel",
   "portalSubtitle": "ศูนย์รวมบริการดิจิทัลสำหรับนักศึกษาและบุคลากร",
   "logoUrl": "/uploads/1793600763812-tab-icon.png",
@@ -20,5 +20,5 @@
   "googleClientId": null,
   "googleClientSecret": null,
   "googleHostedDomain": "cric.ac.th",
-  "updatedAt": "2026-11-02T06:26:05.835Z"
+  "updatedAt": "2026-11-02T06:30:07.941Z"
 }

@@ -166,6 +166,8 @@ function LoginContent() {
     }
   };
 
+  const isDemoEnabled = settings ? settings.demoModeEnabled !== false : true;
+
   return (
     <div className="min-h-screen bg-[#0a0b0c] text-neutral-100 flex flex-col justify-between selection:bg-blue-600 selection:text-white relative overflow-hidden">
       {/* Background Ambience */}
@@ -198,8 +200,15 @@ function LoginContent() {
           </div>
         </Link>
 
-        <div className="text-xs text-neutral-400 hidden sm:block">
-          ระบบยืนยันตัวตนกลาง (Central Identity Portal)
+        <div className="flex items-center gap-2">
+          {!isDemoEnabled && (
+            <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+              ● Production Mode
+            </span>
+          )}
+          <div className="text-xs text-neutral-400 hidden sm:block">
+            ระบบยืนยันตัวตนกลาง (Central Identity Portal)
+          </div>
         </div>
       </header>
 
@@ -218,9 +227,9 @@ function LoginContent() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Form & Google Login */}
-          <div className="lg:col-span-5 bg-[#141517] border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl space-y-5">
+        <div className={isDemoEnabled ? 'grid grid-cols-1 lg:grid-cols-12 gap-8 items-start' : 'max-w-md mx-auto w-full'}>
+          {/* Left / Center Column: Form & Google Login */}
+          <div className={`${isDemoEnabled ? 'lg:col-span-5' : 'w-full'} bg-[#141517] border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl space-y-5`}>
             <div>
               <h2 className="text-base font-semibold text-white">ลงชื่อเข้าใช้งาน</h2>
               <p className="text-xs text-neutral-400">ใช้อีเมลหรือชื่อผู้ใช้งานวิทยาลัย</p>
@@ -322,84 +331,86 @@ function LoginContent() {
             </form>
           </div>
 
-          {/* Right Column: One-Click Demo Accounts */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-emerald-400" />
-                  <span>ทดสอบเข้าสู่ระบบด้วย Demo Users (คลิกเดียวเข้าใช้งาน)</span>
-                </h2>
-                <p className="text-xs text-neutral-400">
-                  เลือกสวมบทบาทเพื่อทดสอบสิทธิ์การเข้าถึงบริการ (RBAC) แต่ละกลุ่มได้ทันที
-                </p>
+          {/* Right Column: One-Click Demo Accounts (Only shown when Demo Mode is Enabled) */}
+          {isDemoEnabled && (
+            <div className="lg:col-span-7 space-y-4 animate-in fade-in">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-white flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-emerald-400" />
+                    <span>ทดสอบเข้าสู่ระบบด้วย Demo Users (คลิกเดียวเข้าใช้งาน)</span>
+                  </h2>
+                  <p className="text-xs text-neutral-400">
+                    เลือกสวมบทบาทเพื่อทดสอบสิทธิ์การเข้าถึงบริการ (RBAC) แต่ละกลุ่มได้ทันที
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {DEMO_USERS.map((demo) => {
-                const IconComponent = demo.icon;
-                const isLoadingThis = demoLoading === demo.role;
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {DEMO_USERS.map((demo) => {
+                  const IconComponent = demo.icon;
+                  const isLoadingThis = demoLoading === demo.role;
 
-                return (
-                  <div
-                    key={demo.role}
-                    className={`p-4 rounded-3xl bg-[#141517] border ${demo.border} transition-all duration-200 flex flex-col justify-between space-y-3 group hover:shadow-xl`}
-                  >
-                    <div>
-                      {/* Role Header */}
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span
-                          className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${demo.color}`}
-                        >
-                          <IconComponent className="w-3.5 h-3.5" />
-                          <span>{demo.title}</span>
-                        </span>
-                      </div>
+                  return (
+                    <div
+                      key={demo.role}
+                      className={`p-4 rounded-3xl bg-[#141517] border ${demo.border} transition-all duration-200 flex flex-col justify-between space-y-3 group hover:shadow-xl`}
+                    >
+                      <div>
+                        {/* Role Header */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span
+                            className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${demo.color}`}
+                          >
+                            <IconComponent className="w-3.5 h-3.5" />
+                            <span>{demo.title}</span>
+                          </span>
+                        </div>
 
-                      {/* User Info */}
-                      <div className="flex items-center gap-3 mb-2">
-                        <img
-                          src={demo.avatar}
-                          alt={demo.name}
-                          className="w-10 h-10 rounded-full object-cover ring-2 ring-neutral-700"
-                        />
-                        <div>
-                          <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">
-                            {demo.name}
-                          </div>
-                          <div className="text-[11px] text-neutral-400 font-mono">
-                            user: <span className="text-white font-bold">{demo.username}</span> | pass: <span className="text-neutral-300">{demo.pass}</span>
+                        {/* User Info */}
+                        <div className="flex items-center gap-3 mb-2">
+                          <img
+                            src={demo.avatar}
+                            alt={demo.name}
+                            className="w-10 h-10 rounded-full object-cover ring-2 ring-neutral-700"
+                          />
+                          <div>
+                            <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">
+                              {demo.name}
+                            </div>
+                            <div className="text-[11px] text-neutral-400 font-mono">
+                              user: <span className="text-white font-bold">{demo.username}</span> | pass: <span className="text-neutral-300">{demo.pass}</span>
+                            </div>
                           </div>
                         </div>
+
+                        <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed">
+                          {demo.description}
+                        </p>
                       </div>
 
-                      <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed">
-                        {demo.description}
-                      </p>
+                      {/* Instant Login Button */}
+                      <button
+                        type="button"
+                        disabled={isLoadingThis}
+                        onClick={() => handleDemoLogin(demo.role)}
+                        className={`w-full py-2 px-3 rounded-xl font-medium text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] shadow-md ${demo.btnColor} disabled:opacity-50`}
+                      >
+                        {isLoadingThis ? (
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <span>คลิกเข้าสู่ระบบทันที</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
                     </div>
-
-                    {/* Instant Login Button */}
-                    <button
-                      type="button"
-                      disabled={isLoadingThis}
-                      onClick={() => handleDemoLogin(demo.role)}
-                      className={`w-full py-2 px-3 rounded-xl font-medium text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] shadow-md ${demo.btnColor} disabled:opacity-50`}
-                    >
-                      {isLoadingThis ? (
-                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <>
-                          <span>คลิกเข้าสู่ระบบทันที</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
 

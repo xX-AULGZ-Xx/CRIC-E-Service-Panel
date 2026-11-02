@@ -54,6 +54,7 @@ export interface SystemSetting {
   maintenanceMessage: string;
   allowUserCustomFavorites: boolean;
   showEmbedWidgetSnippet: boolean;
+  demoModeEnabled: boolean;
   keycloakRealm: string;
   allowedEmailDomains: string;
   sessionTimeoutMinutes: number;
