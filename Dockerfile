@@ -27,23 +27,31 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Install su-exec for safe privilege dropping from root entrypoint
+RUN apk add --no-cache libc6-compat su-exec
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Create public/uploads directory with permissions
-RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public/uploads
+# Copy app files with proper nextjs ownership
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/data ./data
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-
-USER nextjs
+# Copy and setup entrypoint script
+COPY docker/docker-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh && \
+    mkdir -p /app/data /app/public/uploads && \
+    chown -R nextjs:nodejs /app/data /app/public && \
+    chmod -R 777 /app/data /app/public/uploads
 
 EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["sh", "-c", "npx prisma db push --skip-generate && npm start"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["npm", "start"]

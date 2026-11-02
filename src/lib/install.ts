@@ -120,32 +120,52 @@ export async function checkSystemPreflight(): Promise<PreflightCheckResult> {
   // 4. Storage Write Permissions Check
   let dataWritable = false;
   let uploadsWritable = false;
+  let storageFailReason = '';
+
   try {
     const dataDir = path.join(process.cwd(), 'data');
-    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    if (!fs.existsSync(dataDir)) {
+      try {
+        fs.mkdirSync(dataDir, { recursive: true, mode: 0o777 });
+      } catch (mkdirErr: any) {
+        storageFailReason = `สร้างโฟลเดอร์ data/ ไม่ได้ (${mkdirErr.code || mkdirErr.message})`;
+      }
+    }
     const testDataFile = path.join(dataDir, '.test-perm');
     fs.writeFileSync(testDataFile, 'test');
     fs.unlinkSync(testDataFile);
     dataWritable = true;
-  } catch {
+  } catch (err: any) {
     dataWritable = false;
+    if (!storageFailReason) {
+      storageFailReason = `เขียนโฟลเดอร์ data/ ไม่ได้ (${err.code || err.message})`;
+    }
   }
 
   try {
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+    if (!fs.existsSync(uploadsDir)) {
+      try {
+        fs.mkdirSync(uploadsDir, { recursive: true, mode: 0o777 });
+      } catch (mkdirErr: any) {
+        storageFailReason = `สร้างโฟลเดอร์ public/uploads/ ไม่ได้ (${mkdirErr.code || mkdirErr.message})`;
+      }
+    }
     const testUploadFile = path.join(uploadsDir, '.test-perm');
     fs.writeFileSync(testUploadFile, 'test');
     fs.unlinkSync(testUploadFile);
     uploadsWritable = true;
-  } catch {
+  } catch (err: any) {
     uploadsWritable = false;
+    if (!storageFailReason) {
+      storageFailReason = `เขียนโฟลเดอร์ public/uploads/ ไม่ได้ (${err.code || err.message})`;
+    }
   }
 
   const storageOk = dataWritable && uploadsWritable;
   const storageMessage = storageOk
     ? 'สิทธิ์การบันทึกไฟล์ (Storage Write Permission) สมบูรณ์'
-    : 'โฟลเดอร์ data/ หรือ public/uploads/ ไม่มีสิทธิ์เขียนไฟล์';
+    : `${storageFailReason || 'โฟลเดอร์ data/ หรือ public/uploads/ ไม่มีสิทธิ์เขียนไฟล์'} (แนะนำรัน: docker exec -u 0 cric-portal chmod -R 777 /app/data /app/public/uploads)`;
 
   const allPassed = nodeOk && dbOk && storageOk;
 

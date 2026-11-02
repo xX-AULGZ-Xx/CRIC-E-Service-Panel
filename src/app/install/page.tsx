@@ -354,13 +354,28 @@ export default function InstallPage() {
                   ) : (
                     <XCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
                   )}
-                  <div>
+                  <div className="flex-1">
                     <div className="font-semibold text-xs text-neutral-900 dark:text-white">
                       สิทธิ์การบันทึกไฟล์ (Storage)
                     </div>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                      {preflight.storage.message} (data/ & public/uploads/)
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                      {preflight.storage.message}
                     </p>
+                    {!preflight.storage.ok && (
+                      <div className="mt-2.5 p-2.5 rounded-xl bg-neutral-900 dark:bg-black border border-neutral-800 text-[11px] font-mono text-emerald-400 flex items-center justify-between gap-2">
+                        <span className="truncate">docker exec -u 0 -it cric-portal chmod -R 777 /app/data /app/public/uploads</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText('docker exec -u 0 -it cric-portal chmod -R 777 /app/data /app/public/uploads');
+                            alert('คัดลอกคำสั่งแก้ไขสิทธิ์เรียบร้อยแล้ว');
+                          }}
+                          className="px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-white text-[10px] shrink-0 font-sans"
+                        >
+                          คัดลอกคำสั่ง
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

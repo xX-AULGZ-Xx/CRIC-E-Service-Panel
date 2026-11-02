@@ -16,14 +16,14 @@
     "isDefaultFavorite": true,
     "sortOrder": 1,
     "createdAt": "2026-11-02T07:27:43.717Z",
-    "updatedAt": "2026-11-02T07:27:43.717Z",
+    "updatedAt": "2026-11-02T08:49:57.778Z",
     "category": {
       "id": "cat-research-plan",
       "name": "งานวิจัยและแผนงาน",
       "description": "ระบบบริหารงานวิจัยและงบประมาณ",
       "sortOrder": 2,
       "createdAt": "2026-11-02T07:27:43.712Z",
-      "updatedAt": "2026-11-02T07:27:43.712Z"
+      "updatedAt": "2026-11-02T08:49:57.769Z"
     },
     "userFavorites": []
   },
@@ -44,14 +44,14 @@
     "isDefaultFavorite": true,
     "sortOrder": 2,
     "createdAt": "2026-11-02T07:27:43.731Z",
-    "updatedAt": "2026-11-02T07:27:43.731Z",
+    "updatedAt": "2026-11-02T08:49:57.782Z",
     "category": {
       "id": "cat-research-plan",
       "name": "งานวิจัยและแผนงาน",
       "description": "ระบบบริหารงานวิจัยและงบประมาณ",
       "sortOrder": 2,
       "createdAt": "2026-11-02T07:27:43.712Z",
-      "updatedAt": "2026-11-02T07:27:43.712Z"
+      "updatedAt": "2026-11-02T08:49:57.769Z"
     },
     "userFavorites": []
   },
@@ -73,14 +73,14 @@
     "isDefaultFavorite": true,
     "sortOrder": 3,
     "createdAt": "2026-11-02T07:27:43.735Z",
-    "updatedAt": "2026-11-02T07:27:43.735Z",
+    "updatedAt": "2026-11-02T08:49:57.785Z",
     "category": {
       "id": "cat-academic",
       "name": "การเรียนการสอนและวิชาการ",
       "description": "ระบบที่เกี่ยวข้องกับการเรียนการสอน",
       "sortOrder": 1,
       "createdAt": "2026-11-02T07:27:43.704Z",
-      "updatedAt": "2026-11-02T07:27:43.704Z"
+      "updatedAt": "2026-11-02T08:49:57.761Z"
     },
     "userFavorites": []
   },
@@ -102,14 +102,14 @@
     "isDefaultFavorite": true,
     "sortOrder": 4,
     "createdAt": "2026-11-02T07:27:43.739Z",
-    "updatedAt": "2026-11-02T07:27:43.739Z",
+    "updatedAt": "2026-11-02T08:49:57.789Z",
     "category": {
       "id": "cat-academic",
       "name": "การเรียนการสอนและวิชาการ",
       "description": "ระบบที่เกี่ยวข้องกับการเรียนการสอน",
       "sortOrder": 1,
       "createdAt": "2026-11-02T07:27:43.704Z",
-      "updatedAt": "2026-11-02T07:27:43.704Z"
+      "updatedAt": "2026-11-02T08:49:57.761Z"
     },
     "userFavorites": []
   },
@@ -129,14 +129,14 @@
     "isDefaultFavorite": false,
     "sortOrder": 5,
     "createdAt": "2026-11-02T07:27:43.744Z",
-    "updatedAt": "2026-11-02T07:27:43.744Z",
+    "updatedAt": "2026-11-02T08:49:57.792Z",
     "category": {
       "id": "cat-admin-hr",
       "name": "งานบริหารและบุคคล",
       "description": "ระบบงานสารบรรณและบุคลากร",
       "sortOrder": 3,
       "createdAt": "2026-11-02T07:27:43.714Z",
-      "updatedAt": "2026-11-02T07:27:43.714Z"
+      "updatedAt": "2026-11-02T08:49:57.772Z"
     },
     "userFavorites": []
   },
@@ -158,14 +158,14 @@
     "isDefaultFavorite": false,
     "sortOrder": 6,
     "createdAt": "2026-11-02T07:27:43.748Z",
-    "updatedAt": "2026-11-02T07:27:43.748Z",
+    "updatedAt": "2026-11-02T08:49:57.795Z",
     "category": {
       "id": "cat-tools-it",
       "name": "เครื่องมือและไอที",
       "description": "แอปพลิเคชันและบริการช่วยเหลือด้านเทคโนโลยี",
       "sortOrder": 4,
       "createdAt": "2026-11-02T07:27:43.715Z",
-      "updatedAt": "2026-11-02T07:27:43.715Z"
+      "updatedAt": "2026-11-02T08:49:57.774Z"
     },
     "userFavorites": []
   },
@@ -187,14 +187,14 @@
     "isDefaultFavorite": false,
     "sortOrder": 7,
     "createdAt": "2026-11-02T07:27:43.752Z",
-    "updatedAt": "2026-11-02T07:27:43.752Z",
+    "updatedAt": "2026-11-02T08:49:57.798Z",
     "category": {
       "id": "cat-academic",
       "name": "การเรียนการสอนและวิชาการ",
       "description": "ระบบที่เกี่ยวข้องกับการเรียนการสอน",
       "sortOrder": 1,
       "createdAt": "2026-11-02T07:27:43.704Z",
-      "updatedAt": "2026-11-02T07:27:43.704Z"
+      "updatedAt": "2026-11-02T08:49:57.761Z"
     },
     "userFavorites": []
   },
@@ -216,14 +216,14 @@
     "isDefaultFavorite": false,
     "sortOrder": 8,
     "createdAt": "2026-11-02T07:27:43.756Z",
-    "updatedAt": "2026-11-02T07:27:43.756Z",
+    "updatedAt": "2026-11-02T08:49:57.800Z",
     "category": {
       "id": "cat-tools-it",
       "name": "เครื่องมือและไอที",
       "description": "แอปพลิเคชันและบริการช่วยเหลือด้านเทคโนโลยี",
       "sortOrder": 4,
       "createdAt": "2026-11-02T07:27:43.715Z",
-      "updatedAt": "2026-11-02T07:27:43.715Z"
+      "updatedAt": "2026-11-02T08:49:57.774Z"
     },
     "userFavorites": []
   }

@@ -62,6 +62,7 @@ services:
       NEXTAUTH_SECRET: "cric-secure-jwt-secret-key-super-random-32char"
     volumes:
       - uploads_data:/app/public/uploads
+      - portal_data:/app/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,3 +72,4 @@ services:
 volumes:
   postgres_data:
   uploads_data:
+  portal_data:
