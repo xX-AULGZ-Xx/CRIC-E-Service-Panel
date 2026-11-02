@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: cric_password
       POSTGRES_DB: cric_portal_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
@@ -35,7 +35,7 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_HTTP_RELATIVE_PATH: /
     ports:
-      - "8080:8080"
+      - "8085:8080"
     volumes:
       - ./docker/realm-config.json:/opt/keycloak/data/import/realm-config.json:ro
     depends_on:
