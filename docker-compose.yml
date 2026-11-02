@@ -67,6 +67,7 @@ services:
       NEXT_PUBLIC_APP_URL: "http://localhost:3000"
       NEXTAUTH_URL: "http://localhost:3000"
       NEXTAUTH_SECRET: "cric-secure-jwt-secret-key-super-random-32char"
+      JWT_SECRET: "reg-cert-mgmt-system-secret-key-2026-chiangrai"
     volumes:
       - uploads_data:/app/public/uploads
       - portal_data:/app/data

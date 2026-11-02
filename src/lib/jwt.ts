@@ -1,6 +1,11 @@
 import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'reg-cert-mgmt-system-secret-key-2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'reg-cert-mgmt-system-secret-key-2026-chiangrai';
+const CANDIDATE_SECRETS = [
+  JWT_SECRET,
+  'reg-cert-mgmt-system-secret-key-2026-chiangrai',
+  'reg-cert-mgmt-system-secret-key-2026',
+];
 
 function base64UrlEncode(str: string): string {
   return Buffer.from(str)
@@ -63,15 +68,23 @@ export function verifySsoJwt(token: string): CricssoPayload | null {
 
     const [headerEncoded, payloadEncoded, signatureProvided] = parts;
 
-    const expectedSignature = crypto
-      .createHmac('sha256', JWT_SECRET)
-      .update(`${headerEncoded}.${payloadEncoded}`)
-      .digest('base64')
-      .replace(/=/g, '')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_');
+    let signatureMatches = false;
+    for (const secret of CANDIDATE_SECRETS) {
+      const expectedSignature = crypto
+        .createHmac('sha256', secret)
+        .update(`${headerEncoded}.${payloadEncoded}`)
+        .digest('base64')
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
 
-    if (signatureProvided !== expectedSignature) {
+      if (signatureProvided === expectedSignature) {
+        signatureMatches = true;
+        break;
+      }
+    }
+
+    if (!signatureMatches) {
       return null;
     }
 
