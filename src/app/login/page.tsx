@@ -178,7 +178,7 @@ function LoginContent() {
             <img
               src={settings.logoUrl}
               alt="Logo"
-              className="w-9 h-9 rounded-xl object-contain bg-neutral-900 border border-neutral-800 p-1 group-hover:scale-105 transition-transform"
+              className="w-10 h-10 object-contain group-hover:scale-105 transition-transform"
             />
           ) : (
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center font-bold text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">

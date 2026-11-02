@@ -127,7 +127,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
               <img
                 src={settings.logoUrl}
                 alt="Logo"
-                className="w-10 h-10 rounded-xl object-contain bg-neutral-900 border border-neutral-800 p-1 group-hover:scale-105 transition-transform duration-200"
+                className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-200"
               />
             ) : (
               <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">

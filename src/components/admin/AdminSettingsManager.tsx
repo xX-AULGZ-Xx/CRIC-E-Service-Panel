@@ -471,12 +471,12 @@ export default function AdminSettingsManager() {
                 </label>
 
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-neutral-950 border border-neutral-800 p-2 flex items-center justify-center shrink-0">
+                  <div className="w-16 h-16 flex items-center justify-center shrink-0">
                     {settings.logoUrl ? (
                       <img
                         src={settings.logoUrl}
                         alt="College Logo"
-                        className="w-12 h-12 object-contain"
+                        className="w-14 h-14 object-contain"
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-lg">
