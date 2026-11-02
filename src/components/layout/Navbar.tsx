@@ -87,11 +87,17 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
 
   const handleSignOut = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
-      router.refresh();
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      const data = await res.json();
+      if (data.logoutUrl) {
+        window.location.href = data.logoutUrl;
+      } else {
+        router.push('/login');
+        router.refresh();
+      }
     } catch (e) {
       console.error('Logout error', e);
+      window.location.href = '/login';
     }
   };
 

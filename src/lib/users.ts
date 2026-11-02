@@ -18,7 +18,7 @@ export interface UserEntity {
   role: UserRole;
   avatarUrl: string | null;
   isActive: boolean;
-  authProvider: 'local' | 'google';
+  authProvider: 'local' | 'google' | 'keycloak';
   lastLoginAt: Date | string | null;
   createdAt: Date | string;
   updatedAt: Date | string;

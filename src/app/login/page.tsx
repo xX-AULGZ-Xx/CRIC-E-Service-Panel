@@ -282,7 +282,7 @@ function LoginContent() {
                 onClick={() => {
                   setGoogleLoading(true);
                   setError(null);
-                  window.location.href = '/api/auth/google';
+                  window.location.href = '/api/auth/keycloak?idp=google';
                 }}
                 className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-neutral-50 dark:bg-[#1c1d22] dark:hover:bg-[#25262c] border border-neutral-200/90 dark:border-neutral-700/80 text-neutral-800 dark:text-neutral-100 font-medium text-sm flex items-center justify-center gap-3 shadow-sm hover:shadow transition-all active:scale-[0.99] disabled:opacity-60 group"
               >
