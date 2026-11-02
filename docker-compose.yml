@@ -58,6 +58,8 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: "postgresql://cric_user:cric_password@postgres:5432/cric_portal_db?schema=public"
+      KEYCLOAK_PUBLIC_URL: "https://sso.cric.ac.th"
+      KEYCLOAK_INTERNAL_URL: "http://keycloak:8080"
       KEYCLOAK_URL: "http://keycloak:8080"
       KEYCLOAK_REALM: "cric-college"
       KEYCLOAK_CLIENT_ID: "cric-portal"

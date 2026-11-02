@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { findUserByEmail, recordUserLogin, readLocalUsers, writeLocalUsers, UserEntity } from '@/lib/users';
 import { UserRole, UserSession } from '@/types/service';
 import { signSsoJwt } from '@/lib/jwt';
+import { getKeycloakInternalUrl } from '@/lib/keycloak';
 import fs from 'fs';
 import path from 'path';
 
@@ -48,7 +49,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const keycloakBaseUrl = (process.env.KEYCLOAK_URL || 'https://sso.cric.ac.th').replace(/\/$/, '');
+    const keycloakBaseUrl = getKeycloakInternalUrl();
     const realm = process.env.KEYCLOAK_REALM || 'cric-college';
     const clientId = process.env.KEYCLOAK_CLIENT_ID || 'cric-portal';
     const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET || 'cric-portal-secret-key';

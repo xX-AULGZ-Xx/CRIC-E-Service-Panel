@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getKeycloakPublicUrl } from '@/lib/keycloak';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,11 +44,11 @@ function getLogoutUrl(req: NextRequest): string {
   const baseUrl = `${proto}://${host}`;
   const postLogoutRedirect = `${baseUrl}/login`;
 
-  const keycloakBaseUrl = (process.env.KEYCLOAK_URL || 'https://sso.cric.ac.th').replace(/\/$/, '');
+  const keycloakPublicUrl = getKeycloakPublicUrl(req);
   const realm = process.env.KEYCLOAK_REALM || 'cric-college';
   const clientId = process.env.KEYCLOAK_CLIENT_ID || 'cric-portal';
 
-  return `${keycloakBaseUrl}/realms/${realm}/protocol/openid-connect/logout?client_id=${clientId}&post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirect)}`;
+  return `${keycloakPublicUrl}/realms/${realm}/protocol/openid-connect/logout?client_id=${clientId}&post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirect)}`;
 }
 
 export async function POST(req: NextRequest) {

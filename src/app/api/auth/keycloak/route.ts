@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { getKeycloakPublicUrl } from '@/lib/keycloak';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,12 +16,12 @@ export async function GET(req: NextRequest) {
 
     const redirectUri = `${baseUrl}/api/auth/callback/keycloak`;
 
-    const keycloakBaseUrl = (process.env.KEYCLOAK_URL || 'https://sso.cric.ac.th').replace(/\/$/, '');
+    const keycloakPublicUrl = getKeycloakPublicUrl(req);
     const realm = process.env.KEYCLOAK_REALM || 'cric-college';
     const clientId = process.env.KEYCLOAK_CLIENT_ID || 'cric-portal';
 
     const state = crypto.randomBytes(16).toString('hex');
-    const authEndpoint = `${keycloakBaseUrl}/realms/${realm}/protocol/openid-connect/auth`;
+    const authEndpoint = `${keycloakPublicUrl}/realms/${realm}/protocol/openid-connect/auth`;
 
     const authUrl = new URL(authEndpoint);
     authUrl.searchParams.set('client_id', clientId);
