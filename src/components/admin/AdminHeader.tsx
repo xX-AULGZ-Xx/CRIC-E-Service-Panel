@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowLeft, Layers, Sliders, ShieldAlert, Lock, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Layers, Sliders, ShieldAlert, Lock, ArrowRight, Cpu } from 'lucide-react';
 import { UserSession } from '@/types/service';
 
 export default function AdminHeader() {
@@ -23,6 +23,7 @@ export default function AdminHeader() {
 
   const isServicesActive = pathname.startsWith('/admin/services') || pathname === '/admin';
   const isSettingsActive = pathname.startsWith('/admin/settings');
+  const isIntegrationActive = pathname.startsWith('/admin/integration');
 
   const isNonAdmin = session && session.currentRole !== 'admin';
 
@@ -75,29 +76,41 @@ export default function AdminHeader() {
       </div>
 
       {/* Top Navigation Tabs */}
-      <div className="flex items-center gap-3 border-b border-neutral-800 pb-3">
+      <div className="flex items-center gap-2 sm:gap-3 border-b border-neutral-800 pb-3 overflow-x-auto">
         <Link
           href="/admin/services"
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
             isServicesActive
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
               : 'text-neutral-400 hover:text-white hover:bg-neutral-850'
           }`}
         >
           <Layers className="w-4 h-4" />
-          <span>จัดการบริการ (Services Management)</span>
+          <span>จัดการบริการ (Services)</span>
         </Link>
 
         <Link
           href="/admin/settings"
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
             isSettingsActive
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
               : 'text-neutral-400 hover:text-white hover:bg-neutral-850'
           }`}
         >
           <Sliders className="w-4 h-4" />
-          <span>การตั้งค่าระบบ (System Settings)</span>
+          <span>การตั้งค่าระบบ (Settings)</span>
+        </Link>
+
+        <Link
+          href="/admin/integration"
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
+            isIntegrationActive
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-850'
+          }`}
+        >
+          <Cpu className="w-4 h-4" />
+          <span>เชื่อมต่อระบบลูกข่าย (Integration Hub)</span>
         </Link>
       </div>
     </div>

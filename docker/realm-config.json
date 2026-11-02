@@ -37,6 +37,50 @@
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "cric-plan-app",
+      "name": "ระบบแผนงานและงบประมาณ (CRIC Plan)",
+      "rootUrl": "https://plan.cric.ac.th",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "cric-plan-secret-key-2026",
+      "redirectUris": [
+        "https://plan.cric.ac.th/*",
+        "https://plan.cric.ac.th/auth/callback",
+        "http://localhost:8001/*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "cric-rcms-app",
+      "name": "ระบบบริหารจัดการงานวิจัยและวิทยาลัย (CRIC RCMS)",
+      "rootUrl": "https://rcms.cric.ac.th",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "cric-rcms-secret-key-2026",
+      "redirectUris": [
+        "https://rcms.cric.ac.th/*",
+        "https://rcms.cric.ac.th/auth/callback",
+        "http://localhost:8002/*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true
     }
   ],
   "users": [
