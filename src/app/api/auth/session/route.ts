@@ -25,9 +25,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const userProfileCookie = req.cookies.get('cric_user_profile')?.value;
+    let customProfile: any = null;
+    if (userProfileCookie) {
+      try {
+        customProfile = JSON.parse(decodeURIComponent(userProfileCookie));
+        customProfile.currentRole = role;
+      } catch {}
+    }
+
+    const sessionData = customProfile || DEFAULT_USERS[role];
+
     const response = NextResponse.json({
       success: true,
-      data: DEFAULT_USERS[role],
+      data: sessionData,
       message: `Switched active role to ${role}`,
     });
 
@@ -38,6 +49,15 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 7,
       sameSite: 'lax',
     });
+
+    if (customProfile) {
+      response.cookies.set('cric_user_profile', encodeURIComponent(JSON.stringify(customProfile)), {
+        path: '/',
+        httpOnly: false,
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: 'lax',
+      });
+    }
 
     return response;
   } catch (error) {

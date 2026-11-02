@@ -101,6 +101,14 @@ function LoginContent() {
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam));
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     // Check installation status
@@ -256,11 +264,13 @@ function LoginContent() {
               <div className="space-y-3">
                 <button
                   type="button"
+                  disabled={googleLoading}
                   onClick={() => {
-                    alert(`กำลังเชื่อมต่อ Google OAuth (โดเมน: @${settings?.googleHostedDomain || 'cric.ac.th'})...`);
-                    handleDemoLogin('student');
+                    setGoogleLoading(true);
+                    setError(null);
+                    window.location.href = '/api/auth/google';
                   }}
-                  className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-neutral-50 dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-100 font-medium text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-sm transition-all active:scale-[0.99]"
+                  className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-neutral-50 dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-neutral-100 font-medium text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-sm transition-all active:scale-[0.99] disabled:opacity-60"
                 >
                   <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -268,7 +278,7 @@ function LoginContent() {
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                   </svg>
-                  <span>เข้าสู่ระบบด้วย Google Workspace</span>
+                  <span>{googleLoading ? 'กำลังเชื่อมต่อ Google Workspace...' : 'เข้าสู่ระบบด้วย Google Workspace'}</span>
                 </button>
 
                 <div className="relative flex items-center justify-center">

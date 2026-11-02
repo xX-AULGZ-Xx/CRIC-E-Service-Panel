@@ -1,0 +1,86 @@
+import { prisma } from '@/lib/prisma';
+import fs from 'fs';
+import path from 'path';
+
+export interface SystemSettingsData {
+  id: string;
+  collegeNameTh: string;
+  collegeNameEn: string;
+  portalTitle: string;
+  portalSubtitle: string;
+  logoUrl: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  helpdeskUrl: string | null;
+  footerText: string;
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  allowUserCustomFavorites: boolean;
+  showEmbedWidgetSnippet: boolean;
+  demoModeEnabled: boolean;
+  keycloakRealm: string;
+  allowedEmailDomains: string;
+  sessionTimeoutMinutes: number;
+
+  // Google OAuth 2.0 Integration
+  googleAuthEnabled: boolean;
+  googleClientId: string | null;
+  googleClientSecret: string | null;
+  googleHostedDomain: string | null;
+}
+
+export const DEFAULT_SETTINGS: SystemSettingsData = {
+  id: 'default',
+  collegeNameTh: 'วิทยาลัยอาชีวศึกษา CRIC',
+  collegeNameEn: 'CRIC Vocational College',
+  portalTitle: 'CRIC E-Service Panel',
+  portalSubtitle: 'ศูนย์รวมบริการดิจิทัลสำหรับนักศึกษาและบุคลากร',
+  logoUrl: null,
+  contactEmail: 'support@cric.ac.th',
+  contactPhone: '02-123-4567',
+  helpdeskUrl: 'https://helpdesk.cric.ac.th',
+  footerText: '© 2026 CRIC College. All rights reserved.',
+  maintenanceMode: false,
+  maintenanceMessage: 'ระบบกำลังอยู่ระหว่างการปรับปรุงชั่วคราว เพื่อพัฒนาประสิทธิภาพการบริการ ขออภัยในความไม่สะดวก',
+  allowUserCustomFavorites: true,
+  showEmbedWidgetSnippet: true,
+  demoModeEnabled: true,
+  keycloakRealm: 'cric-college',
+  allowedEmailDomains: 'cric.ac.th, student.cric.ac.th',
+  sessionTimeoutMinutes: 120,
+
+  // Google OAuth 2.0 Integration
+  googleAuthEnabled: false,
+  googleClientId: null,
+  googleClientSecret: null,
+  googleHostedDomain: 'cric.ac.th',
+};
+
+export async function getSystemSettings(): Promise<SystemSettingsData> {
+  try {
+    const settings = await prisma.systemSetting.findUnique({
+      where: { id: 'default' },
+    });
+    if (settings) {
+      return {
+        ...DEFAULT_SETTINGS,
+        ...settings,
+      };
+    }
+  } catch (e) {
+    // Database query failed or table not found, fallback to local file
+  }
+
+  const filePath = path.join(process.cwd(), 'data', 'settings.json');
+  if (fs.existsSync(filePath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      return {
+        ...DEFAULT_SETTINGS,
+        ...data,
+      };
+    } catch {}
+  }
+
+  return DEFAULT_SETTINGS;
+}

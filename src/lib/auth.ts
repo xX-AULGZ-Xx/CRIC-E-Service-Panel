@@ -43,12 +43,27 @@ export const DEFAULT_USERS: Record<UserRole, UserSession> = {
 export async function getCurrentUserSession(): Promise<UserSession> {
   const cookieStore = await cookies();
   const selectedRole = (cookieStore.get('cric_active_role')?.value || 'admin') as UserRole;
-  
-  if (DEFAULT_USERS[selectedRole]) {
-    return DEFAULT_USERS[selectedRole];
+  const userProfileCookie = cookieStore.get('cric_user_profile')?.value;
+
+  let customProfile: Partial<UserSession> | null = null;
+  if (userProfileCookie) {
+    try {
+      customProfile = JSON.parse(decodeURIComponent(userProfileCookie));
+    } catch {}
   }
 
-  return DEFAULT_USERS.admin;
+  const baseUser = DEFAULT_USERS[selectedRole] || DEFAULT_USERS.admin;
+
+  if (customProfile) {
+    return {
+      ...baseUser,
+      ...customProfile,
+      currentRole: selectedRole,
+      roles: customProfile.roles && customProfile.roles.length > 0 ? customProfile.roles : [selectedRole],
+    };
+  }
+
+  return baseUser;
 }
 
 export async function isAuthenticatedUser(): Promise<boolean> {
