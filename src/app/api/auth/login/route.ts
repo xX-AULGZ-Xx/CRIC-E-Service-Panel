@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { DEFAULT_USERS } from '@/lib/auth';
 import { UserRole } from '@/types/service';
+
+function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password.trim()).digest('hex');
+}
 
 const DEMO_CREDENTIALS: Record<string, { role: UserRole; pass: string }> = {
   admin: { role: 'admin', pass: 'admin123' },
@@ -23,17 +30,42 @@ export async function POST(req: NextRequest) {
     };
 
     let targetRole: UserRole | null = null;
+    let customDisplayName: string | undefined;
+    let customEmail: string | undefined;
+
+    // Check Master Admin from data/admin.json
+    const adminFilePath = path.join(process.cwd(), 'data', 'admin.json');
+    let masterAdmin: any = null;
+    if (fs.existsSync(adminFilePath)) {
+      try {
+        masterAdmin = JSON.parse(fs.readFileSync(adminFilePath, 'utf-8'));
+      } catch {}
+    }
 
     // Direct Demo Login
     if (demoRole && DEFAULT_USERS[demoRole]) {
       targetRole = demoRole;
     } else if (username && password) {
       const trimmedUser = username.trim().toLowerCase();
-      const match = DEMO_CREDENTIALS[trimmedUser];
+      
+      // Check Master Admin first
+      if (masterAdmin && (trimmedUser === masterAdmin.email || trimmedUser === 'admin')) {
+        if (masterAdmin.passwordHash === hashPassword(password) || password === 'admin123') {
+          targetRole = 'admin';
+          customDisplayName = masterAdmin.name;
+          customEmail = masterAdmin.email;
+        }
+      }
 
-      if (match && match.pass === password) {
-        targetRole = match.role;
-      } else {
+      // Check standard Demo Credentials
+      if (!targetRole) {
+        const match = DEMO_CREDENTIALS[trimmedUser];
+        if (match && match.pass === password) {
+          targetRole = match.role;
+        }
+      }
+
+      if (!targetRole) {
         return NextResponse.json(
           { success: false, error: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง (ลองใช้บัญชี Demo ด้านล่าง)' },
           { status: 401 }
@@ -46,7 +78,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userSession = DEFAULT_USERS[targetRole];
+    const baseSession = DEFAULT_USERS[targetRole];
+    const userSession = {
+      ...baseSession,
+      displayName: customDisplayName || baseSession.displayName,
+      email: customEmail || baseSession.email,
+    };
     const response = NextResponse.json({
       success: true,
       message: `เข้าสู่ระบบสำเร็จในฐานะ ${targetRole}`,

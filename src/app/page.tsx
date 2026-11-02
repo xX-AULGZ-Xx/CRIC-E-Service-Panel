@@ -1,5 +1,7 @@
 import PortalDashboard from '@/components/portal/PortalDashboard';
 import { Metadata } from 'next';
+import { isSystemInstalled } from '@/lib/install';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'CRIC E-Service Panel | ศูนย์รวมบริการภายในวิทยาลัย',
@@ -7,5 +9,8 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
+  if (!isSystemInstalled()) {
+    redirect('/install');
+  }
   return <PortalDashboard />;
 }

@@ -103,6 +103,16 @@ function LoginContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check installation status
+    fetch('/api/v1/install/check')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && !data.data.isInstalled) {
+          router.push('/install');
+        }
+      })
+      .catch(() => {});
+
     fetch('/api/v1/settings')
       .then((res) => res.json())
       .then((data) => {
@@ -111,7 +121,7 @@ function LoginContent() {
         }
       })
       .catch((err) => console.error(err));
-  }, []);
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

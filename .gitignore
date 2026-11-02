@@ -38,6 +38,10 @@ yarn-error.log*
 /public/uploads/*
 !/public/uploads/.gitkeep
 
+# installation lock and local admin credentials
+/data/installed.lock
+/data/admin.json
+
 # vercel
 .vercel
 
