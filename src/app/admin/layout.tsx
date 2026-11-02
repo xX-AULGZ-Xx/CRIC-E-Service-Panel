@@ -3,6 +3,9 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import { isSystemInstalled } from '@/lib/install';
 import { redirect } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!isSystemInstalled()) {
     redirect('/install');

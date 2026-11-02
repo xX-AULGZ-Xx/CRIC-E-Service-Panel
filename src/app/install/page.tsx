@@ -155,18 +155,18 @@ export default function InstallPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <Link
+            <a
               href="/"
-              className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-xs font-semibold transition-colors"
+              className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-xs font-semibold transition-colors block text-center"
             >
               หน้าแรก Portal
-            </Link>
-            <Link
+            </a>
+            <a
               href="/admin/services"
-              className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-600/20 transition-colors"
+              className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-600/20 transition-colors block text-center"
             >
               จัดการระบบ Admin
-            </Link>
+            </a>
           </div>
         </div>
       </div>
