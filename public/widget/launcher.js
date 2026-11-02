@@ -1,10 +1,35 @@
 (function () {
   'use strict';
 
-  // Determine portal origin from script tag
-  const currentScript = document.currentScript;
-  const scriptUrl = currentScript ? new URL(currentScript.src) : new URL('http://localhost:3000');
-  const PORTAL_URL = scriptUrl.origin;
+  // Determine portal origin from script tag or fallback
+  let portalUrl = 'https://panel.cric.ac.th';
+
+  if (window.__CRIC_PORTAL_URL__) {
+    portalUrl = window.__CRIC_PORTAL_URL__.replace(/\/$/, '');
+  } else {
+    let foundSrc = document.currentScript ? document.currentScript.src : null;
+
+    if (!foundSrc) {
+      const scriptTag = document.querySelector('script[src*="launcher.js"]');
+      if (scriptTag && scriptTag.src) {
+        foundSrc = scriptTag.src;
+      }
+    }
+
+    if (foundSrc) {
+      try {
+        portalUrl = new URL(foundSrc).origin;
+      } catch (e) {
+        portalUrl = 'https://panel.cric.ac.th';
+      }
+    } else if (typeof window !== 'undefined' && window.location.hostname.includes('cric.ac.th')) {
+      portalUrl = 'https://panel.cric.ac.th';
+    } else if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      portalUrl = 'http://localhost:3000';
+    }
+  }
+
+  const PORTAL_URL = portalUrl;
 
   // Prevent multiple injections
   if (window.__CRIC_LAUNCHER_LOADED__) return;
@@ -224,14 +249,29 @@
         .join('');
       servicesLoaded = true;
     } catch (e) {
-      console.error('Failed to load CRIC services in widget', e);
+      console.error('[CRIC Widget] Failed to load services from', `${PORTAL_URL}/api/v1/services`, e);
       const grid = document.getElementById('cric-widget-grid');
       if (grid) {
         grid.innerHTML = `
-          <div style="grid-column: span 3; text-align: center; padding: 20px 0; font-size: 12px; color: #f87171;">
-            ไม่สามารถเชื่อมต่อกับ Portal ได้
+          <div style="grid-column: span 3; text-align: center; padding: 18px 0; font-size: 12px; color: #f87171;">
+            <div>ไม่สามารถเชื่อมต่อกับ Portal ได้</div>
+            <button id="cric-widget-retry" style="margin-top: 8px; padding: 4px 10px; font-size: 11px; border-radius: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; cursor: pointer;">
+              กดเพื่อลองใหม่
+            </button>
           </div>
         `;
+        const retryBtn = document.getElementById('cric-widget-retry');
+        if (retryBtn) {
+          retryBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            grid.innerHTML = `
+              <div style="grid-column: span 3; text-align: center; padding: 20px 0; font-size: 12px; color: #9aa0a6;">
+                กำลังโหลดบริการ...
+              </div>
+            `;
+            loadServices();
+          });
+        }
       }
     }
   }
