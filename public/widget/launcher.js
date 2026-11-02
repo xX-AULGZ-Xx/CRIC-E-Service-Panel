@@ -195,7 +195,10 @@
 
   async function loadServices() {
     try {
-      const res = await fetch(`${PORTAL_URL}/api/v1/services`);
+      const res = await fetch(`${PORTAL_URL}/api/v1/services`, {
+        mode: 'cors',
+        credentials: 'include',
+      });
       const data = await res.json();
       const grid = document.getElementById('cric-widget-grid');
       if (!grid) return;
@@ -213,7 +216,7 @@
         .map(
           (srv) => `
           <a href="${srv.url}" target="${srv.openInNewTab ? '_blank' : '_self'}" class="cric-widget-item" title="${srv.title}">
-            <img src="${srv.iconUrl.startsWith('/') ? PORTAL_URL + srv.iconUrl : srv.iconUrl}" alt="${srv.title}" />
+            <img src="${srv.iconUrl && srv.iconUrl.startsWith('/') ? PORTAL_URL + srv.iconUrl : (srv.iconUrl || '')}" alt="${srv.title}" />
             <span>${srv.title}</span>
           </a>
         `
@@ -222,6 +225,14 @@
       servicesLoaded = true;
     } catch (e) {
       console.error('Failed to load CRIC services in widget', e);
+      const grid = document.getElementById('cric-widget-grid');
+      if (grid) {
+        grid.innerHTML = `
+          <div style="grid-column: span 3; text-align: center; padding: 20px 0; font-size: 12px; color: #f87171;">
+            ไม่สามารถเชื่อมต่อกับ Portal ได้
+          </div>
+        `;
+      }
     }
   }
 

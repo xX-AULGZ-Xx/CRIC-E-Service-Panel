@@ -7,6 +7,19 @@ import path from 'path';
 const DATA_DIR = path.join(process.cwd(), 'data');
 const SERVICES_FILE = path.join(DATA_DIR, 'services.json');
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
+}
+
 async function readLocalServices(): Promise<any[]> {
   try {
     const raw = await readFile(SERVICES_FILE, 'utf-8');
@@ -67,7 +80,7 @@ export async function GET(req: NextRequest) {
         success: true,
         count: enriched.length,
         data: enriched,
-      });
+      }, { headers: corsHeaders });
     }
 
     // Filter active services and check RBAC permissions
@@ -81,7 +94,7 @@ export async function GET(req: NextRequest) {
       role: filterRole,
       count: visibleServices.length,
       data: visibleServices,
-    });
+    }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error fetching services:', error);
     return NextResponse.json(
@@ -90,7 +103,7 @@ export async function GET(req: NextRequest) {
         error: error.message || 'Failed to fetch services',
         data: [],
       },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
