@@ -26,14 +26,20 @@ services:
     restart: always
     command: start-dev --import-realm
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
-      KC_DB_USERNAME: cric_user
-      KC_DB_PASSWORD: cric_password
+      KC_DB_USERNAME: ${POSTGRES_USER:-cric_user}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-cric_password}
       KC_HEALTH_ENABLED: "true"
       KC_HTTP_RELATIVE_PATH: /
+      # Cloudflare Tunnel / Reverse Proxy (https://sso.cric.ac.th)
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-sso.cric.ac.th}
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
+      KC_PROXY_HEADERS: "xforwarded"
+      KC_HTTP_ENABLED: "true"
     ports:
       - "8085:8080"
     volumes:

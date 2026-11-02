@@ -26,7 +26,9 @@
       "redirectUris": [
         "http://localhost:3000/*",
         "http://localhost:3000/api/auth/callback/keycloak",
-        "http://127.0.0.1:3000/*"
+        "http://127.0.0.1:3000/*",
+        "https://panel.cric.ac.th/*",
+        "https://panel.cric.ac.th/api/auth/callback/keycloak"
       ],
       "webOrigins": [
         "*"
@@ -70,6 +72,8 @@
       "redirectUris": [
         "https://rcms.cric.ac.th/*",
         "https://rcms.cric.ac.th/auth/callback",
+        "http://localhost:3006/*",
+        "http://localhost:3006/auth/callback",
         "http://localhost:8002/*"
       ],
       "webOrigins": [
