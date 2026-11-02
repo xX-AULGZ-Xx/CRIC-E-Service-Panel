@@ -294,4 +294,133 @@
       popover.classList.remove('open');
     }
   });
+
+  // ==========================================
+  // UNIVERSAL SSO AGENT (Auto-Login & Auto-Logout)
+  // ==========================================
+  function initUniversalSsoAgent() {
+    let isSyncing = false;
+
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    async function checkAndSyncSession() {
+      if (isSyncing) return;
+
+      const isCricDomain = window.location.hostname.includes('cric.ac.th');
+      const pathname = window.location.pathname;
+
+      // Skip public routes
+      if (
+        pathname.startsWith('/install') ||
+        pathname.startsWith('/surveys/') ||
+        pathname.startsWith('/events/') ||
+        pathname === '/auth/callback'
+      ) {
+        return;
+      }
+
+      const localToken = localStorage.getItem('token');
+      const hasCricCookie = document.cookie.split(';').some((c) => c.trim().startsWith('cric_logged_in=true'));
+      const ssoSessionCookie = getCookie('cric_sso_session');
+
+      // CASE A: User is logged in to local app, but logged out of Central Portal
+      if (isCricDomain && localToken && !hasCricCookie) {
+        console.warn('[CRIC SSO Agent] Central session logged out. Purging local credentials...');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.dispatchEvent(new CustomEvent('cric:sso:logout'));
+        window.dispatchEvent(new CustomEvent('user-updated', { detail: null }));
+
+        if (pathname.startsWith('/dashboard')) {
+          window.location.href = 'https://panel.cric.ac.th/login';
+        }
+        return;
+      }
+
+      // CASE B: User is NOT logged in to local app, but is logged in to Central Portal (AUTO-LOGIN!)
+      if (!localToken && (ssoSessionCookie || isCricDomain)) {
+        let sessionToken = ssoSessionCookie;
+
+        // If no direct cookie, verify with Central Session Check API
+        if (!sessionToken) {
+          try {
+            const checkRes = await fetch(`${PORTAL_URL}/api/v1/sso/session-check`, {
+              mode: 'cors',
+              credentials: 'include',
+            });
+            const checkData = await checkRes.json();
+            if (checkData.authenticated && checkData.ssoToken) {
+              sessionToken = checkData.ssoToken;
+            }
+          } catch (e) {
+            // ignore network check error
+          }
+        }
+
+        if (sessionToken) {
+          isSyncing = true;
+          console.log('[CRIC SSO Agent] Active Portal session detected! Executing Auto-Login...');
+
+          try {
+            // Sync with local application auth endpoint (e.g. RCMS /api/v1/auth/sso/sync-session)
+            const syncEndpoint = window.__CRIC_SSO_SYNC_ENDPOINT__ || '/api/v1/auth/sso/sync-session';
+            const res = await fetch(syncEndpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sessionToken }),
+            });
+            const data = await res.json();
+
+            if (data.success && data.data?.token) {
+              localStorage.setItem('token', data.data.token);
+              localStorage.setItem('user', JSON.stringify(data.data.user));
+
+              console.log('[CRIC SSO Agent] Auto-Login successful! User:', data.data.user?.username || data.data.user?.email);
+
+              // Notify Navbar and application components in-place
+              window.dispatchEvent(new CustomEvent('cric:sso:login', { detail: data.data.user }));
+              window.dispatchEvent(new CustomEvent('user-updated', { detail: data.data.user }));
+
+              // If currently waiting on /login, forward to /dashboard
+              if (pathname === '/login') {
+                window.location.href = '/dashboard';
+              }
+            }
+          } catch (err) {
+            console.warn('[CRIC SSO Agent] Auto-login sync attempt error:', err);
+          } finally {
+            isSyncing = false;
+          }
+        }
+      }
+    }
+
+    // Initial check
+    checkAndSyncSession();
+
+    // Event-driven triggers: tab focus & visibility change
+    window.addEventListener('focus', checkAndSyncSession);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        checkAndSyncSession();
+      }
+    });
+
+    // 3-second heartbeat
+    setInterval(checkAndSyncSession, 3000);
+
+    // Expose global controller
+    window.CricSSO = {
+      checkSession: checkAndSyncSession,
+      getPortalUrl: () => PORTAL_URL,
+    };
+  }
+
+  // Initialize SSO Agent automatically
+  initUniversalSsoAgent();
 })();
