@@ -11,8 +11,7 @@ import {
   X, 
   Star,
   Globe,
-  Layers,
-  Sparkles
+  Layers
 } from 'lucide-react';
 
 interface AppLauncherProps {
@@ -94,10 +93,10 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
         onClick={() => setIsOpen(!isOpen)}
         title="CRIC E-Service Launcher"
         aria-label="CRIC E-Service Launcher"
-        className={`p-2.5 rounded-full transition-all duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+        className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
           isOpen
-            ? 'bg-neutral-800 text-blue-400 shadow-md ring-2 ring-blue-500/40'
-            : 'text-neutral-300 hover:text-white hover:bg-neutral-800/80 active:scale-95'
+            ? 'bg-neutral-200 dark:bg-neutral-800 text-blue-600 dark:text-blue-400 shadow-md ring-2 ring-blue-500/40'
+            : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800/80 active:scale-95'
         }`}
       >
         <Grip className="w-5 h-5" />
@@ -106,17 +105,16 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
       {/* Google-Style Popover Menu */}
       {isOpen && (
         <div
-          className="absolute right-0 mt-3 w-[360px] max-h-[580px] overflow-hidden rounded-3xl bg-[#1e1f20] border border-[#3c4043] shadow-2xl z-50 flex flex-col text-white animate-in fade-in zoom-in-95 duration-150"
-          style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.6)' }}
+          className="absolute right-0 mt-3 w-[360px] max-h-[580px] overflow-hidden rounded-3xl bg-white dark:bg-[#1e1f20] border border-neutral-200 dark:border-[#3c4043] shadow-2xl z-50 flex flex-col text-neutral-800 dark:text-white animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Header: Your Favorites & Edit Button */}
-          <div className="px-5 pt-4 pb-2 flex items-center justify-between border-b border-[#3c4043]/40">
+          <div className="px-5 pt-4 pb-2 flex items-center justify-between border-b border-neutral-100 dark:border-[#3c4043]/40">
             <div className="flex items-center gap-2">
-              <span className="text-[17px] font-medium tracking-tight text-neutral-100">
+              <span className="text-[17px] font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
                 Your favorites
               </span>
               {favoriteServices.length > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 font-normal">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-normal">
                   {favoriteServices.length}
                 </span>
               )}
@@ -127,7 +125,7 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
               className={`p-2 rounded-full transition-colors flex items-center justify-center ${
                 isEditMode
                   ? 'bg-blue-600 text-white hover:bg-blue-500'
-                  : 'bg-neutral-800/80 hover:bg-neutral-700 text-neutral-300 hover:text-white'
+                  : 'bg-neutral-100 dark:bg-neutral-800/80 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white'
               }`}
               title={isEditMode ? 'Done editing' : 'Customize favorites'}
             >
@@ -137,11 +135,11 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
 
           {/* Edit Mode Notice Banner */}
           {isEditMode && (
-            <div className="bg-blue-950/60 border-b border-blue-900/60 px-4 py-2 text-xs text-blue-300 flex items-center justify-between">
+            <div className="bg-blue-50 dark:bg-blue-950/60 border-b border-blue-200 dark:border-blue-900/60 px-4 py-2 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
               <span>คลิก ✕ หรือ ＋ เพื่อเพิ่ม/ลบรายการโปรด</span>
               <button
                 onClick={() => setIsEditMode(false)}
-                className="font-semibold underline hover:text-white"
+                className="font-semibold underline hover:text-blue-900 dark:hover:text-white"
               >
                 เสร็จสิ้น
               </button>
@@ -157,8 +155,8 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
               </div>
             ) : services.length === 0 ? (
               <div className="py-10 text-center px-4">
-                <Layers className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
-                <p className="text-sm text-neutral-300 font-medium">ยังไม่มีบริการในระบบ</p>
+                <Layers className="w-10 h-10 text-neutral-400 dark:text-neutral-600 mx-auto mb-2" />
+                <p className="text-sm text-neutral-700 dark:text-neutral-300 font-medium">ยังไม่มีบริการในระบบ</p>
                 <p className="text-xs text-neutral-500 mt-1">
                   ผู้ดูแลระบบ (Admin) สามารถเพิ่มบริการใหม่ผ่านเมนู Admin Management
                 </p>
@@ -179,17 +177,17 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
                     ))}
                   </div>
                 ) : (
-                  <div className="py-6 text-center text-xs text-neutral-500 px-4 bg-neutral-900/40 rounded-2xl mx-1 my-2">
-                    <Star className="w-5 h-5 text-neutral-600 mx-auto mb-1" />
+                  <div className="py-6 text-center text-xs text-neutral-500 px-4 bg-neutral-50 dark:bg-neutral-900/40 rounded-2xl mx-1 my-2">
+                    <Star className="w-5 h-5 text-neutral-400 dark:text-neutral-600 mx-auto mb-1" />
                     ยังไม่ได้เลือกบริการโปรด (กดปุ่มดินสอเพื่อเลือก)
                   </div>
                 )}
 
                 {/* More Services Section */}
                 {otherServices.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-[#3c4043]/40">
+                  <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-[#3c4043]/40">
                     <div className="px-2 mb-2 flex items-center justify-between">
-                      <span className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+                      <span className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                         {isEditMode ? 'บริการอื่นๆ ที่สามารถเพิ่มเป็นรายการโปรดได้' : 'More CRIC Services'}
                       </span>
                     </div>
@@ -212,14 +210,14 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
           </div>
 
           {/* Footer Bar */}
-          <div className="px-4 py-3 bg-[#18191a] border-t border-[#3c4043]/50 flex items-center justify-between text-xs text-neutral-400">
-            <span className="flex items-center gap-1.5 font-medium text-neutral-300">
+          <div className="px-4 py-3 bg-neutral-50 dark:bg-[#18191a] border-t border-neutral-200 dark:border-[#3c4043]/50 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
+            <span className="flex items-center gap-1.5 font-medium text-neutral-700 dark:text-neutral-300">
               <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
               CRIC E-Service Panel
             </span>
             <a
               href="/admin/services"
-              className="text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1"
+              className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
             >
               Admin Setup
               <ExternalLink className="w-3 h-3" />
@@ -262,8 +260,8 @@ function ServiceLauncherItem({
       title={`${service.title}${service.description ? ` - ${service.description}` : ''}`}
       className={`group relative flex flex-col items-center justify-start p-2 rounded-2xl cursor-pointer transition-all duration-150 select-none ${
         isEditMode
-          ? 'hover:bg-neutral-800/90 ring-1 ring-neutral-700/50'
-          : 'hover:bg-neutral-800/80 active:scale-95'
+          ? 'hover:bg-neutral-100 dark:hover:bg-neutral-800/90 ring-1 ring-neutral-200 dark:ring-neutral-700/50'
+          : 'hover:bg-neutral-100 dark:hover:bg-neutral-800/80 active:scale-95'
       }`}
     >
       {/* Edit Mode Badge (Minus or Plus) */}
@@ -285,11 +283,10 @@ function ServiceLauncherItem({
           <img
             src={service.iconUrl}
             alt={service.title}
-            className="w-10 h-10 object-contain drop-shadow-md"
+            className="w-10 h-10 object-contain drop-shadow-sm"
             onError={(e) => {
-              // Fallback to generic icon if image fails to load
               (e.target as HTMLElement).style.display = 'none';
-              (e.target as HTMLElement).parentElement!.classList.add('bg-neutral-800');
+              (e.target as HTMLElement).parentElement!.classList.add('bg-neutral-100', 'dark:bg-neutral-800');
             }}
           />
         ) : (
@@ -300,7 +297,7 @@ function ServiceLauncherItem({
       </div>
 
       {/* App Name */}
-      <span className="text-[12px] font-normal text-neutral-200 text-center line-clamp-1 max-w-[84px] group-hover:text-white leading-tight">
+      <span className="text-[12px] font-normal text-neutral-700 dark:text-neutral-200 text-center line-clamp-1 max-w-[84px] group-hover:text-neutral-950 dark:group-hover:text-white leading-tight">
         {service.title}
       </span>
     </div>

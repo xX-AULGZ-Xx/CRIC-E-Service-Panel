@@ -13,6 +13,7 @@
   "maintenanceMessage": "ระบบกำลังอยู่ระหว่างการปรับปรุงชั่วคราว เพื่อพัฒนาประสิทธิภาพการบริการ ขออภัยในความไม่สะดวก",
   "allowUserCustomFavorites": true,
   "showEmbedWidgetSnippet": true,
+  "demoModeEnabled": true,
   "keycloakRealm": "cric-college",
   "allowedEmailDomains": "cric.ac.th, student.cric.ac.th",
   "sessionTimeoutMinutes": 120,
@@ -20,5 +21,5 @@
   "googleClientId": null,
   "googleClientSecret": null,
   "googleHostedDomain": "cric.ac.th",
-  "updatedAt": "2026-11-02T06:30:07.941Z"
+  "updatedAt": "2026-11-02T06:39:38.541Z"
 }
