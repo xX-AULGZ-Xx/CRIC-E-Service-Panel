@@ -3,6 +3,7 @@ import { getSystemSettings } from '@/lib/settings';
 import { prisma } from '@/lib/prisma';
 import { findUserByEmail, recordUserLogin, readLocalUsers, writeLocalUsers, UserEntity } from '@/lib/users';
 import { UserRole, UserSession } from '@/types/service';
+import { setUnifiedAuthCookies } from '@/lib/session';
 import fs from 'fs';
 import path from 'path';
 
@@ -219,28 +220,8 @@ export async function GET(req: NextRequest) {
     const targetUrl = assignedRole === 'admin' ? '/admin/services' : '/';
     const response = NextResponse.redirect(new URL(targetUrl, baseUrl));
 
-    // Store active role and login status
-    response.cookies.set('cric_active_role', assignedRole, {
-      path: '/',
-      httpOnly: false,
-      maxAge: 60 * 60 * 24 * 7,
-      sameSite: 'lax',
-    });
-
-    response.cookies.set('cric_logged_in', 'true', {
-      path: '/',
-      httpOnly: false,
-      maxAge: 60 * 60 * 24 * 7,
-      sameSite: 'lax',
-    });
-
-    // Store rich Google user profile
-    response.cookies.set('cric_user_profile', encodeURIComponent(JSON.stringify(userProfile)), {
-      path: '/',
-      httpOnly: false,
-      maxAge: 60 * 60 * 24 * 7,
-      sameSite: 'lax',
-    });
+    // Store active role and login status across .cric.ac.th
+    setUnifiedAuthCookies(response, userProfile, host);
 
     // Clean up temporary cookies
     response.cookies.delete('cric_oauth_state');

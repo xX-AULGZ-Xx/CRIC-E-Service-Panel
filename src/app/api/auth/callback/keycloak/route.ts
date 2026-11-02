@@ -4,6 +4,7 @@ import { findUserByEmail, recordUserLogin, readLocalUsers, writeLocalUsers, User
 import { UserRole, UserSession } from '@/types/service';
 import { signSsoJwt } from '@/lib/jwt';
 import { getKeycloakInternalUrl } from '@/lib/keycloak';
+import { setUnifiedAuthCookies } from '@/lib/session';
 import fs from 'fs';
 import path from 'path';
 
@@ -222,35 +223,8 @@ export async function GET(req: NextRequest) {
 
     const response = NextResponse.redirect(new URL(finalTarget, baseUrl));
 
-    // Determine cookie domain for production (.cric.ac.th)
-    const isCricDomain = host.includes('cric.ac.th');
-    const cookieDomain = isCricDomain ? '.cric.ac.th' : undefined;
-
-    // Helper to set both host and root domain cookie
-    const setSessionCookie = (name: string, value: string) => {
-      // Host level
-      response.cookies.set(name, value, {
-        path: '/',
-        httpOnly: false,
-        maxAge: 60 * 60 * 24 * 7,
-        sameSite: 'lax',
-      });
-      // Root domain level for .cric.ac.th (RCMS auto-login)
-      if (cookieDomain) {
-        response.cookies.set(name, value, {
-          path: '/',
-          domain: cookieDomain,
-          httpOnly: false,
-          maxAge: 60 * 60 * 24 * 7,
-          sameSite: 'lax',
-        });
-      }
-    };
-
-    setSessionCookie('cric_logged_in', 'true');
-    setSessionCookie('cric_active_role', assignedRole);
-    setSessionCookie('cric_user_profile', encodeURIComponent(JSON.stringify(userProfile)));
-    setSessionCookie('cric_sso_session', ssoSessionJwt);
+    // Set unified session cookies across .cric.ac.th
+    setUnifiedAuthCookies(response, userProfile, host);
 
     // Clean up temporary auth cookies
     response.cookies.delete('cric_keycloak_state');

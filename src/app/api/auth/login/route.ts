@@ -5,6 +5,7 @@ import path from 'path';
 import { DEFAULT_USERS } from '@/lib/auth';
 import { findUserByLoginIdentifier, recordUserLogin, hashUserPassword } from '@/lib/users';
 import { UserRole } from '@/types/service';
+import { setUnifiedAuthCookies } from '@/lib/session';
 
 function hashPassword(password: string): string {
   return hashUserPassword(password);
@@ -104,6 +105,7 @@ export async function POST(req: NextRequest) {
       displayName: customDisplayName || baseSession.displayName,
       email: customEmail || baseSession.email,
     };
+    const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
     const response = NextResponse.json({
       success: true,
       message: `เข้าสู่ระบบสำเร็จในฐานะ ${targetRole}`,
@@ -111,20 +113,8 @@ export async function POST(req: NextRequest) {
       redirectUrl: targetRole === 'admin' ? '/admin/services' : '/',
     });
 
-    // Set authentication cookies for 7 days
-    response.cookies.set('cric_active_role', targetRole, {
-      path: '/',
-      httpOnly: false,
-      maxAge: 60 * 60 * 24 * 7,
-      sameSite: 'lax',
-    });
-
-    response.cookies.set('cric_logged_in', 'true', {
-      path: '/',
-      httpOnly: false,
-      maxAge: 60 * 60 * 24 * 7,
-      sameSite: 'lax',
-    });
+    // Set unified authentication cookies across .cric.ac.th
+    setUnifiedAuthCookies(response, userSession, host);
 
     return response;
   } catch (error) {
