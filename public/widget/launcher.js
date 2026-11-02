@@ -44,6 +44,35 @@
       z-index: 999999;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
+    .cric-widget-root.cric-widget-inline {
+      position: relative;
+      top: auto;
+      right: auto;
+      z-index: 45;
+      display: inline-flex;
+      align-items: center;
+    }
+    .cric-widget-root.cric-widget-inline .cric-widget-btn {
+      width: 36px;
+      height: 36px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .cric-widget-root.cric-widget-inline .cric-widget-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .cric-widget-root.cric-widget-inline .cric-widget-btn.active {
+      background: #e2e8f0;
+      border-color: #3b82f6;
+      color: #2563eb;
+    }
+    .cric-widget-root.cric-widget-inline .cric-widget-popover {
+      top: calc(100% + 8px);
+      right: 0;
+    }
     .cric-widget-btn {
       width: 40px;
       height: 40px;
@@ -213,7 +242,30 @@
 
   root.appendChild(btn);
   root.appendChild(popover);
-  document.body.appendChild(root);
+
+  function mountWidget() {
+    const targetContainer = document.getElementById('cric-launcher-container') || document.querySelector('[data-cric-launcher]');
+    if (targetContainer) {
+      root.classList.add('cric-widget-inline');
+      targetContainer.appendChild(root);
+      return true;
+    }
+    return false;
+  }
+
+  // Mount into targeted container if available, or fallback to body
+  if (!mountWidget()) {
+    let mountAttempts = 0;
+    const mountInterval = setInterval(() => {
+      mountAttempts++;
+      if (mountWidget() || mountAttempts >= 30) {
+        clearInterval(mountInterval);
+        if (!root.parentNode) {
+          document.body.appendChild(root);
+        }
+      }
+    }, 100);
+  }
 
   let isOpen = false;
   let servicesLoaded = false;
