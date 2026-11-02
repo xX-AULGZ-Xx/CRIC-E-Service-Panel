@@ -77,9 +77,18 @@ export default function AdminSettingsManager() {
         body: formData,
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.url) {
         handleChange('logoUrl', data.url);
-        setMessage({ text: 'อัปโหลดโลโก้สำเร็จ (อย่าลืมกดบันทึกการตั้งค่า)', type: 'success' });
+        // Auto-save immediately to database and settings storage
+        if (settings) {
+          const updatedSettings = { ...settings, logoUrl: data.url };
+          fetch('/api/v1/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedSettings),
+          }).catch(console.error);
+        }
+        setMessage({ text: 'อัปโหลดและบันทึกโลโก้สถาบันเรียบร้อยแล้ว', type: 'success' });
       } else {
         alert(data.error || 'อัปโหลดโลโก้ไม่สำเร็จ');
       }

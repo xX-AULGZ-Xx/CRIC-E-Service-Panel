@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ThemeToggleButton from '@/components/theme/ThemeToggleButton';
@@ -28,6 +28,7 @@ import {
   Eye,
   EyeOff,
   ChevronRight,
+  Upload,
 } from 'lucide-react';
 
 const DEFAULT_PRESET_SERVICES = [
@@ -64,6 +65,34 @@ export default function InstallPage() {
   const [confirmPassword, setConfirmPassword] = useState<string>('Admin@2026!');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [includeSampleData, setIncludeSampleData] = useState<boolean>(true);
+  const [uploadingLogo, setUploadingLogo] = useState<boolean>(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/v1/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setLogoUrl(data.url);
+      } else {
+        alert(data.error || 'อัปโหลดโลโก้ไม่สำเร็จ');
+      }
+    } catch {
+      alert('เกิดข้อผิดพลาดในการอัปโหลดไฟล์');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   // Fetch Pre-flight Checks
   const runPreflightCheck = async () => {
@@ -656,21 +685,46 @@ export default function InstallPage() {
                 </div>
               </div>
 
-              {/* Logo Preview */}
+              {/* Logo Preview & Upload */}
               <div className="pt-2">
                 <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  โลโก้วิทยาลัย / ตราสถาบัน (Logo Preview)
+                  โลโก้วิทยาลัย / ตราสถาบัน (College Logo)
                 </label>
-                <div className="flex items-center gap-4 p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-950/50">
-                  <div className="w-14 h-14 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-2 flex items-center justify-center shrink-0">
-                    <img src={logoUrl} alt="Logo" className="w-10 h-10 object-contain" />
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-950/50">
+                  <div className="w-16 h-16 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-2 flex items-center justify-center shrink-0">
+                    <img src={logoUrl} alt="Logo" className="w-12 h-12 object-contain" />
                   </div>
-                  <div>
-                    <div className="text-xs font-semibold text-neutral-800 dark:text-white">
-                      ตราสัญลักษณ์วิทยาลัย (Clean Borderless Emblem)
+                  <div className="space-y-1.5 flex-1">
+                    <input
+                      type="file"
+                      ref={logoInputRef}
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                    />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => logoInputRef.current?.click()}
+                        disabled={uploadingLogo}
+                        className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-xs font-medium text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700 inline-flex items-center gap-1.5 shadow-sm transition-all"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{uploadingLogo ? 'กำลังอัปโหลด...' : 'อัปโหลดไฟล์โลโก้ใหม่'}</span>
+                      </button>
+
+                      {logoUrl !== '/uploads/1793600763812-tab-icon.png' && (
+                        <button
+                          type="button"
+                          onClick={() => setLogoUrl('/uploads/1793600763812-tab-icon.png')}
+                          className="px-3 py-1.5 rounded-xl text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
+                        >
+                          ใช้ตรามาตรฐาน CRIC
+                        </button>
+                      )}
                     </div>
-                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-                      สามารถเปลี่ยนหรืออัปโหลดรูปใหม่ได้ในหน้าเมนู การตั้งค่าระบบ (Settings) ภายหลังการติดตั้ง
+                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                      รองรับไฟล์ภาพ PNG, JPG, WebP หรือ SVG แนะนำพื้นหลังโปร่งใส ขนาดไม่เกิน 2MB
                     </p>
                   </div>
                 </div>
