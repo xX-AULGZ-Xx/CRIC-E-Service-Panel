@@ -63,6 +63,7 @@ export default function InstallPage() {
   const [adminPassword, setAdminPassword] = useState<string>('Admin@2026!');
   const [confirmPassword, setConfirmPassword] = useState<string>('Admin@2026!');
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [includeSampleData, setIncludeSampleData] = useState<boolean>(true);
 
   // Fetch Pre-flight Checks
   const runPreflightCheck = async () => {
@@ -116,6 +117,7 @@ export default function InstallPage() {
           adminName,
           adminEmail,
           adminPassword,
+          includeSampleData,
         }),
       });
 
@@ -422,31 +424,144 @@ export default function InstallPage() {
             <div>
               <h2 className="text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                 <Database className="w-5 h-5 text-blue-500" />
-                ขั้นตอนที่ 2: สร้างตารางและบริการเริ่มต้น (Database & Seed Services)
+                ขั้นตอนที่ 2: ฐานข้อมูลและบริการเริ่มต้น (Database & Seed Services)
               </h2>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                ระบบจะสร้างหมวดหมู่หลัก 4 หมวด และนำเข้าบริการดิจิทัลพื้นฐานของวิทยาลัยทั้ง 8 รายการเข้าสู่ฐานข้อมูล
+                เลือกว่าต้องการนำเข้าข้อมูลบริการตัวอย่างของวิทยาลัยหรือไม่ เพื่อความสะดวกในการเริ่มต้นระบบ
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto p-1">
-              {DEFAULT_PRESET_SERVICES.map((srv, idx) => (
-                <div
-                  key={idx}
-                  className="p-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/50 flex items-center gap-3"
-                >
-                  <img src={srv.icon} alt={srv.title} className="w-8 h-8 object-contain shrink-0" />
-                  <div className="min-w-0">
-                    <div className="text-xs font-semibold text-neutral-900 dark:text-white truncate">
-                      {srv.title}
+            {/* Toggle Options: Sample Data vs Clean Installation */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Option 1: Include Sample Data */}
+              <button
+                type="button"
+                onClick={() => setIncludeSampleData(true)}
+                className={`p-4 rounded-2xl border text-left transition-all relative flex flex-col justify-between ${
+                  includeSampleData
+                    ? 'bg-blue-50/80 dark:bg-blue-500/10 border-blue-500 text-neutral-900 dark:text-white shadow-md shadow-blue-500/10 ring-2 ring-blue-500/20'
+                    : 'bg-slate-50/50 dark:bg-neutral-950/40 border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300 dark:hover:border-neutral-700'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                        includeSampleData
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-500'
+                      }`}
+                    >
+                      <Sparkles className="w-4 h-4" />
                     </div>
-                    <div className="text-[10px] text-neutral-500 dark:text-neutral-400">
-                      หมวด: {srv.cat}
+                    <div>
+                      <div className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                        <span>นำเข้าบริการตัวอย่าง</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          แนะนำ
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                        ติดตั้ง 8 บริการเริ่มต้น และ 4 หมวดหมู่หลักของวิทยาลัย
+                      </p>
                     </div>
                   </div>
+                  <div
+                    className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                      includeSampleData
+                        ? 'border-blue-600 bg-blue-600 text-white'
+                        : 'border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900'
+                    }`}
+                  >
+                    {includeSampleData && <Check className="w-3 h-3 stroke-[3]" />}
+                  </div>
                 </div>
-              ))}
+              </button>
+
+              {/* Option 2: Clean Installation */}
+              <button
+                type="button"
+                onClick={() => setIncludeSampleData(false)}
+                className={`p-4 rounded-2xl border text-left transition-all relative flex flex-col justify-between ${
+                  !includeSampleData
+                    ? 'bg-blue-50/80 dark:bg-blue-500/10 border-blue-500 text-neutral-900 dark:text-white shadow-md shadow-blue-500/10 ring-2 ring-blue-500/20'
+                    : 'bg-slate-50/50 dark:bg-neutral-950/40 border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300 dark:hover:border-neutral-700'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                        !includeSampleData
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-500'
+                      }`}
+                    >
+                      <Layers className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                        <span>ติดตั้งระบบเปล่า (Clean)</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+                          ว่างเปล่า
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                        สร้างเฉพาะตารางเปล่าและหมวดหมู่ (กำหนดบริการเองภายหลัง)
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                      !includeSampleData
+                        ? 'border-blue-600 bg-blue-600 text-white'
+                        : 'border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900'
+                    }`}
+                  >
+                    {!includeSampleData && <Check className="w-3 h-3 stroke-[3]" />}
+                  </div>
+                </div>
+              </button>
             </div>
+
+            {/* Content Preview based on selection */}
+            {includeSampleData ? (
+              <div className="space-y-3">
+                <div className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                  <span>ตัวอย่างบริการดิจิทัลที่จะถูกนำเข้าสู่ระบบ ({DEFAULT_PRESET_SERVICES.length} รายการ):</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-64 overflow-y-auto p-1 rounded-2xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/50 dark:bg-black/30">
+                  {DEFAULT_PRESET_SERVICES.map((srv, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 rounded-xl border border-neutral-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex items-center gap-3"
+                    >
+                      <img src={srv.icon} alt={srv.title} className="w-7 h-7 object-contain shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-neutral-900 dark:text-white truncate">
+                          {srv.title}
+                        </div>
+                        <div className="text-[10px] text-neutral-500 dark:text-neutral-400">
+                          หมวด: {srv.cat}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700/80 text-center bg-slate-50/60 dark:bg-neutral-950/40 space-y-2">
+                <Layers className="w-8 h-8 text-neutral-400 mx-auto" />
+                <div className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+                  คุณเลือกติดตั้งระบบแบบว่างเปล่า (No Sample Data)
+                </div>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
+                  ระบบจะสร้างโครงสร้างตารางฐานข้อมูลและ 4 หมวดหมู่หลักไว้ให้พร้อม โดยยังไม่มีการเพิ่มรายการบริการใดๆ เข้าสู่ระบบ ผู้ดูแลระบบสามารถเข้าไปเพิ่มบริการใหม่ได้ตลอดเวลาในหน้าจัดการบริการ (Admin Services)
+                </p>
+              </div>
+            )}
 
             {/* Action Bar */}
             <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between">

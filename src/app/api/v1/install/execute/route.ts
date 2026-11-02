@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
       adminName,
       adminEmail,
       adminPassword,
+      includeSampleData = true,
     } = body;
 
     if (!adminEmail || !adminPassword) {
@@ -61,46 +62,50 @@ export async function POST(req: NextRequest) {
       console.warn('DB Category seed warning (falling back if needed):', dbErr.message);
     }
 
-    // Read default services from data/services.json
-    try {
-      const servicesFilePath = path.join(process.cwd(), 'data', 'services.json');
-      if (fs.existsSync(servicesFilePath)) {
-        const rawServices = JSON.parse(fs.readFileSync(servicesFilePath, 'utf-8'));
-        if (Array.isArray(rawServices)) {
-          for (const srv of rawServices) {
-            await prisma.service.upsert({
-              where: { id: srv.id },
-              update: {
-                title: srv.title,
-                description: srv.description,
-                url: srv.url,
-                iconUrl: srv.iconUrl,
-                categoryId: srv.categoryId,
-                allowedRoles: srv.allowedRoles,
-                openInNewTab: srv.openInNewTab,
-                isActive: srv.isActive,
-                isDefaultFavorite: srv.isDefaultFavorite,
-                sortOrder: srv.sortOrder,
-              },
-              create: {
-                id: srv.id,
-                title: srv.title,
-                description: srv.description,
-                url: srv.url,
-                iconUrl: srv.iconUrl,
-                categoryId: srv.categoryId,
-                allowedRoles: srv.allowedRoles,
-                openInNewTab: srv.openInNewTab,
-                isActive: srv.isActive,
-                isDefaultFavorite: srv.isDefaultFavorite,
-                sortOrder: srv.sortOrder,
-              },
-            });
+    // Read and seed default services only if user requested sample data
+    if (includeSampleData) {
+      try {
+        const servicesFilePath = path.join(process.cwd(), 'data', 'services.json');
+        if (fs.existsSync(servicesFilePath)) {
+          const rawServices = JSON.parse(fs.readFileSync(servicesFilePath, 'utf-8'));
+          if (Array.isArray(rawServices)) {
+            for (const srv of rawServices) {
+              await prisma.service.upsert({
+                where: { id: srv.id },
+                update: {
+                  title: srv.title,
+                  description: srv.description,
+                  url: srv.url,
+                  iconUrl: srv.iconUrl,
+                  categoryId: srv.categoryId,
+                  allowedRoles: srv.allowedRoles,
+                  openInNewTab: srv.openInNewTab,
+                  isActive: srv.isActive,
+                  isDefaultFavorite: srv.isDefaultFavorite,
+                  sortOrder: srv.sortOrder,
+                },
+                create: {
+                  id: srv.id,
+                  title: srv.title,
+                  description: srv.description,
+                  url: srv.url,
+                  iconUrl: srv.iconUrl,
+                  categoryId: srv.categoryId,
+                  allowedRoles: srv.allowedRoles,
+                  openInNewTab: srv.openInNewTab,
+                  isActive: srv.isActive,
+                  isDefaultFavorite: srv.isDefaultFavorite,
+                  sortOrder: srv.sortOrder,
+                },
+              });
+            }
           }
         }
+      } catch (seedErr: any) {
+        console.warn('DB Services seed warning:', seedErr.message);
       }
-    } catch (seedErr: any) {
-      console.warn('DB Services seed warning:', seedErr.message);
+    } else {
+      console.log('Clean installation selected: skipping default sample services seed.');
     }
 
     // 3. Upsert System Settings
