@@ -62,12 +62,15 @@ export async function POST(req: NextRequest) {
       console.warn('DB Category seed warning (falling back if needed):', dbErr.message);
     }
 
-    // Read and seed default services only if user requested sample data
+    // Handle services based on user choice
     if (includeSampleData) {
       try {
-        const servicesFilePath = path.join(process.cwd(), 'data', 'services.json');
-        if (fs.existsSync(servicesFilePath)) {
-          const rawServices = JSON.parse(fs.readFileSync(servicesFilePath, 'utf-8'));
+        const defaultServicesPath = path.join(process.cwd(), 'data', 'services.default.json');
+        const fallbackPath = path.join(process.cwd(), 'data', 'services.json');
+        const targetPath = fs.existsSync(defaultServicesPath) ? defaultServicesPath : fallbackPath;
+
+        if (fs.existsSync(targetPath)) {
+          const rawServices = JSON.parse(fs.readFileSync(targetPath, 'utf-8'));
           if (Array.isArray(rawServices)) {
             for (const srv of rawServices) {
               await prisma.service.upsert({
@@ -99,13 +102,26 @@ export async function POST(req: NextRequest) {
                 },
               });
             }
+            // Sync to data/services.json
+            const currentServicesPath = path.join(process.cwd(), 'data', 'services.json');
+            fs.writeFileSync(currentServicesPath, JSON.stringify(rawServices, null, 2), 'utf-8');
           }
         }
       } catch (seedErr: any) {
         console.warn('DB Services seed warning:', seedErr.message);
       }
     } else {
-      console.log('Clean installation selected: skipping default sample services seed.');
+      console.log('Clean installation selected: clearing all existing services from database and storage.');
+      try {
+        await prisma.userFavorite.deleteMany({});
+        await prisma.service.deleteMany({});
+      } catch (delErr: any) {
+        console.warn('Failed to clear services for clean install:', delErr.message);
+      }
+      try {
+        const servicesFilePath = path.join(process.cwd(), 'data', 'services.json');
+        fs.writeFileSync(servicesFilePath, JSON.stringify([], null, 2), 'utf-8');
+      } catch {}
     }
 
     // 3. Upsert System Settings

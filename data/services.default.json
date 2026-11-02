@@ -1,0 +1,230 @@
+[
+  {
+    "id": "srv-plan",
+    "title": "ระบบแผนงานและงบประมาณ (CRIC Plan)",
+    "description": "ระบบติดตามแผนปฏิบัติราชการ การเบิกจ่ายงบประมาณ และรายงานโครงการประจำปี",
+    "url": "https://plan.cric.ac.th",
+    "iconUrl": "https://cdn-icons-png.flaticon.com/512/2965/2965313.png",
+    "categoryId": "cat-research-plan",
+    "allowedRoles": [
+      "teacher",
+      "staff",
+      "admin"
+    ],
+    "openInNewTab": true,
+    "isActive": true,
+    "isDefaultFavorite": true,
+    "sortOrder": 1,
+    "createdAt": "2026-11-02T07:27:43.717Z",
+    "updatedAt": "2026-11-02T08:49:57.778Z",
+    "category": {
+      "id": "cat-research-plan",
+      "name": "งานวิจัยและแผนงาน",
+      "description": "ระบบบริหารงานวิจัยและงบประมาณ",
+      "sortOrder": 2,
+      "createdAt": "2026-11-02T07:27:43.712Z",
+      "updatedAt": "2026-11-02T08:49:57.769Z"
+    },
+    "userFavorites": []
+  },
+  {
+    "id": "srv-rcms",
+    "title": "ระบบบริหารงานวิจัยและวิทยาลัย (CRIC RCMS)",
+    "description": "ระบบยื่นข้อเสนอโครงการวิจัย นวัตกรรมสิ่งประดิษฐ์ และทรัพย์สินทางปัญญา",
+    "url": "https://rcms.cric.ac.th",
+    "iconUrl": "https://cdn-icons-png.flaticon.com/512/3145/3145765.png",
+    "categoryId": "cat-research-plan",
+    "allowedRoles": [
+      "teacher",
+      "staff",
+      "admin"
+    ],
+    "openInNewTab": true,
+    "isActive": true,
+    "isDefaultFavorite": true,
+    "sortOrder": 2,
+    "createdAt": "2026-11-02T07:27:43.731Z",
+    "updatedAt": "2026-11-02T08:49:57.782Z",
+    "category": {
+      "id": "cat-research-plan",
+      "name": "งานวิจัยและแผนงาน",
+      "description": "ระบบบริหารงานวิจัยและงบประมาณ",
+      "sortOrder": 2,
+      "createdAt": "2026-11-02T07:27:43.712Z",
+      "updatedAt": "2026-11-02T08:49:57.769Z"
+    },
+    "userFavorites": []
+  },
+  {
+    "id": "srv-reg",
+    "title": "ระบบสารสนเทศทะเบียนนักศึกษา (E-Registrar)",
+    "description": "ลงทะเบียนเรียน ตรวจสอบผลการเรียน ตารางสอบ และพิมพ์ใบรับรองสภาพนักศึกษา",
+    "url": "https://reg.cric.ac.th",
+    "iconUrl": "https://cdn-icons-png.flaticon.com/512/3429/3429284.png",
+    "categoryId": "cat-academic",
+    "allowedRoles": [
+      "student",
+      "teacher",
+      "staff",
+      "admin"
+    ],
+    "openInNewTab": true,
+    "isActive": true,
+    "isDefaultFavorite": true,
+    "sortOrder": 3,
+    "createdAt": "2026-11-02T07:27:43.735Z",
+    "updatedAt": "2026-11-02T08:49:57.785Z",
+    "category": {
+      "id": "cat-academic",
+      "name": "การเรียนการสอนและวิชาการ",
+      "description": "ระบบที่เกี่ยวข้องกับการเรียนการสอน",
+      "sortOrder": 1,
+      "createdAt": "2026-11-02T07:27:43.704Z",
+      "updatedAt": "2026-11-02T08:49:57.761Z"
+    },
+    "userFavorites": []
+  },
+  {
+    "id": "srv-classroom",
+    "title": "Google Classroom (CRIC Workspace)",
+    "description": "ห้องเรียนออนไลน์สำหรับส่งการบ้าน สื่อการสอน และการประชุมผ่าน Google Meet",
+    "url": "https://classroom.google.com",
+    "iconUrl": "https://cdn-icons-png.flaticon.com/512/2965/2965278.png",
+    "categoryId": "cat-academic",
+    "allowedRoles": [
+      "student",
+      "teacher",
+      "staff",
+      "admin"
+    ],
+    "openInNewTab": true,
+    "isActive": true,
+    "isDefaultFavorite": true,
+    "sortOrder": 4,
+    "createdAt": "2026-11-02T07:27:43.739Z",
+    "updatedAt": "2026-11-02T08:49:57.789Z",
+    "category": {
+      "id": "cat-academic",
+      "name": "การเรียนการสอนและวิชาการ",
+      "description": "ระบบที่เกี่ยวข้องกับการเรียนการสอน",
+      "sortOrder": 1,
+      "createdAt": "2026-11-02T07:27:43.704Z",
+      "updatedAt": "2026-11-02T08:49:57.761Z"
+    },
+    "userFavorites": []
+  },
+  {
+    "id": "srv-edoc",
+    "title": "ระบบสารบรรณและเอกสาร (E-Document)",
+    "description": "ระบบรับ-ส่งหนังสือราชการอิเล็กทรอนิกส์ การเกษียนหนังสือ และหนังสือเวียน",
+    "url": "https://edoc.cric.ac.th",
+    "iconUrl": "https://cdn-icons-png.flaticon.com/512/2965/2965280.png",
+    "categoryId": "cat-admin-hr",
+    "allowedRoles": [
+      "staff",
+      "admin"
+    ],
+    "openInNewTab": true,
+    "isActive": true,
+    "isDefaultFavorite": false,
+    "sortOrder": 5,
+    "createdAt": "2026-11-02T07:27:43.744Z",
+    "updatedAt": "2026-11-02T08:49:57.792Z",
+    "category": {
+      "id": "cat-admin-hr",
+      "name": "งานบริหารและบุคคล",
+      "description": "ระบบงานสารบรรณและบุคลากร",
+      "sortOrder": 3,
+      "createdAt": "2026-11-02T07:27:43.714Z",
+      "updatedAt": "2026-11-02T08:49:57.772Z"
+    },
+    "userFavorites": []
+  },
+  {
+    "id": "srv-gemini",
+    "title": "CRIC Gemini AI Assistant",
+    "description": "เครื่องมือปัญญาประดิษฐ์ช่วยสอน ค้นคว้างานวิจัย และสรุปเนื้อหาสำหรับนักศึกษา",
+    "url": "https://gemini.google.com",
+    "iconUrl": "https://cdn-icons-png.flaticon.com/512/11865/11865326.png",
+    "categoryId": "cat-tools-it",
+    "allowedRoles": [
+      "student",
+      "teacher",
+      "staff",
+      "admin"
+    ],
+    "openInNewTab": true,
+    "isActive": true,
+    "isDefaultFavorite": false,
+    "sortOrder": 6,
+    "createdAt": "2026-11-02T07:27:43.748Z",
+    "updatedAt": "2026-11-02T08:49:57.795Z",
+    "category": {
+      "id": "cat-tools-it",
+      "name": "เครื่องมือและไอที",
+      "description": "แอปพลิเคชันและบริการช่วยเหลือด้านเทคโนโลยี",
+      "sortOrder": 4,
+      "createdAt": "2026-11-02T07:27:43.715Z",
+      "updatedAt": "2026-11-02T08:49:57.774Z"
+    },
+    "userFavorites": []
+  },
+  {
+    "id": "srv-library",
+    "title": "ห้องสมุดดิจิทัล (CRIC E-Library)",
+    "description": "ยืม-คืนหนังสือออนไลน์ ฐานข้อมูลงานวิจัยวิทยาลัย และ E-Books",
+    "url": "https://library.cric.ac.th",
+    "iconUrl": "https://cdn-icons-png.flaticon.com/512/3145/3145765.png",
+    "categoryId": "cat-academic",
+    "allowedRoles": [
+      "student",
+      "teacher",
+      "staff",
+      "admin"
+    ],
+    "openInNewTab": true,
+    "isActive": true,
+    "isDefaultFavorite": false,
+    "sortOrder": 7,
+    "createdAt": "2026-11-02T07:27:43.752Z",
+    "updatedAt": "2026-11-02T08:49:57.798Z",
+    "category": {
+      "id": "cat-academic",
+      "name": "การเรียนการสอนและวิชาการ",
+      "description": "ระบบที่เกี่ยวข้องกับการเรียนการสอน",
+      "sortOrder": 1,
+      "createdAt": "2026-11-02T07:27:43.704Z",
+      "updatedAt": "2026-11-02T08:49:57.761Z"
+    },
+    "userFavorites": []
+  },
+  {
+    "id": "srv-helpdesk",
+    "title": "ศูนย์รับเรื่องร้องเรียนและ IT Helpdesk",
+    "description": "แจ้งปัญหาอินเทอร์เน็ต ขอรีเซ็ตรหัสผ่านอีเมล และแจ้งซ่อมอุปกรณ์คอมพิวเตอร์",
+    "url": "https://helpdesk.cric.ac.th",
+    "iconUrl": "https://cdn-icons-png.flaticon.com/512/4233/4233830.png",
+    "categoryId": "cat-tools-it",
+    "allowedRoles": [
+      "student",
+      "teacher",
+      "staff",
+      "admin"
+    ],
+    "openInNewTab": true,
+    "isActive": true,
+    "isDefaultFavorite": false,
+    "sortOrder": 8,
+    "createdAt": "2026-11-02T07:27:43.756Z",
+    "updatedAt": "2026-11-02T08:49:57.800Z",
+    "category": {
+      "id": "cat-tools-it",
+      "name": "เครื่องมือและไอที",
+      "description": "แอปพลิเคชันและบริการช่วยเหลือด้านเทคโนโลยี",
+      "sortOrder": 4,
+      "createdAt": "2026-11-02T07:27:43.715Z",
+      "updatedAt": "2026-11-02T08:49:57.774Z"
+    },
+    "userFavorites": []
+  }
+]
