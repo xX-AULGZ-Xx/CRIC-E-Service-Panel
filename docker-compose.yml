@@ -35,9 +35,8 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_HTTP_RELATIVE_PATH: /
       # Cloudflare Tunnel / Reverse Proxy (https://sso.cric.ac.th)
-      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-sso.cric.ac.th}
-      KC_HOSTNAME_STRICT: "false"
-      KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-https://sso.cric.ac.th}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
       KC_PROXY_HEADERS: "xforwarded"
       KC_HTTP_ENABLED: "true"
     ports:
