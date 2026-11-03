@@ -389,7 +389,7 @@
         window.dispatchEvent(new CustomEvent('user-updated', { detail: null }));
 
         if (pathname.startsWith('/dashboard')) {
-          window.location.href = 'https://panel.cric.ac.th/login';
+          window.location.href = window.location.origin + '/login?expired=1';
         }
         return;
       }
