@@ -5,6 +5,13 @@ import { getCurrentUserSession } from '@/lib/auth';
 export async function GET() {
   try {
     const session = await getCurrentUserSession();
+    if (!session) {
+      return NextResponse.json({
+        success: true,
+        data: [],
+      });
+    }
+
     const favorites = await prisma.userFavorite.findMany({
       where: { userId: session.userId },
       include: { service: true },
@@ -26,6 +33,12 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await getCurrentUserSession();
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: 'กรุณาเข้าสู่ระบบก่อนจัดการรายการโปรด' },
+        { status: 401 }
+      );
+    }
     const body = await req.json();
     const { serviceId, action, sortOrder } = body as {
       serviceId: string;

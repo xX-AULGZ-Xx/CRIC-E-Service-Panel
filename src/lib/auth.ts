@@ -40,7 +40,12 @@ export const DEFAULT_USERS: Record<UserRole, UserSession> = {
   },
 };
 
-export async function getCurrentUserSession(): Promise<UserSession> {
+export async function getCurrentUserSession(): Promise<UserSession | null> {
+  const isAuth = await isAuthenticatedUser();
+  if (!isAuth) {
+    return null;
+  }
+
   const cookieStore = await cookies();
   const selectedRole = (cookieStore.get('cric_active_role')?.value || 'admin') as UserRole;
   const userProfileCookie = cookieStore.get('cric_user_profile')?.value;
@@ -73,13 +78,20 @@ export async function isAuthenticatedUser(): Promise<boolean> {
 }
 
 export function isUserAuthorizedForService(userRoles: string[], serviceAllowedRoles: string[]): boolean {
-  // If service has no specific roles assigned, it's public to all authenticated users
-  if (!serviceAllowedRoles || serviceAllowedRoles.length === 0) {
-    return true;
+  // If guest / unauthenticated, only allow public services
+  if (!userRoles || userRoles.length === 0 || userRoles.includes('guest')) {
+    return !serviceAllowedRoles || serviceAllowedRoles.length === 0 || serviceAllowedRoles.includes('guest');
   }
+
   // Admin role can always see all services
   if (userRoles.includes('admin')) {
     return true;
   }
+
+  // If service has no specific roles assigned, it's public to all authenticated users
+  if (!serviceAllowedRoles || serviceAllowedRoles.length === 0) {
+    return true;
+  }
+
   return serviceAllowedRoles.some((role) => userRoles.includes(role));
 }

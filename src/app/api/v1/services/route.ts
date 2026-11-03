@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const session = await getCurrentUserSession();
     const isManageMode = searchParams.get('all') === 'true';
-    const filterRole = searchParams.get('role') || session.currentRole;
+    const filterRole = searchParams.get('role') || session?.currentRole || 'guest';
 
     let services: any[] = [];
 
@@ -68,11 +68,11 @@ export async function GET(req: NextRequest) {
         ],
         include: {
           category: true,
-          userFavorites: {
+          userFavorites: session?.userId ? {
             where: {
               userId: session.userId,
             },
-          },
+          } : false,
         },
       });
       // Sync database state to local storage backup
@@ -129,7 +129,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getCurrentUserSession();
-    if (!session.roles.includes('admin')) {
+    if (!session || !session.roles.includes('admin')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin role required' },
         { status: 403 }

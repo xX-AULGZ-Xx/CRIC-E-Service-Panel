@@ -15,6 +15,7 @@ import {
   Search,
   ChevronDown,
   LogOut,
+  LogIn,
   User as UserIcon
 } from 'lucide-react';
 
@@ -27,7 +28,7 @@ interface NavbarProps {
 export default function Navbar({ settings, onRoleChange, onSearchChange }: NavbarProps) {
   const router = useRouter();
   const [session, setSession] = useState<UserSession | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [demoMode, setDemoMode] = useState<boolean>(true);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -127,7 +128,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
 
   const currentRoleBadge = getRoleBadge(session?.currentRole);
   const RoleIcon = currentRoleBadge.icon;
-  const isDemoActive = demoMode && settings?.demoModeEnabled !== false && process.env.NEXT_PUBLIC_DEMO_MODE !== 'false';
+  const isDemoActive = isLoggedIn && !!session && demoMode && settings?.demoModeEnabled !== false && process.env.NEXT_PUBLIC_DEMO_MODE !== 'false';
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-neutral-200 dark:border-neutral-800 bg-white/90 dark:bg-[#121314]/90 backdrop-blur-md px-4 lg:px-8 py-3 transition-colors duration-200">
@@ -228,77 +229,89 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
           {/* The Google 9-Dots App Launcher Icon */}
           <AppLauncher currentRole={session?.currentRole} />
 
-          {/* User Profile Avatar & Dropdown */}
-          <div className="relative pl-1 border-l border-neutral-200 dark:border-neutral-800" ref={profileRef}>
-            <button
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-              title="เมนูผู้ใช้งาน"
-            >
-              <img
-                src={session?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                alt={session?.displayName || 'User'}
-                className="w-8 h-8 rounded-full object-cover ring-2 ring-neutral-300 dark:ring-neutral-700 hover:ring-blue-500 transition-all cursor-pointer"
-              />
-            </button>
+          {/* User Profile Avatar & Dropdown OR Guest Sign-In Button */}
+          {isLoggedIn && session ? (
+            <div className="relative pl-1 border-l border-neutral-200 dark:border-neutral-800" ref={profileRef}>
+              <button
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                title="เมนูผู้ใช้งาน"
+              >
+                <img
+                  src={session.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                  alt={session.displayName || 'User'}
+                  className="w-8 h-8 rounded-full object-cover ring-2 ring-neutral-300 dark:ring-neutral-700 hover:ring-blue-500 transition-all cursor-pointer"
+                />
+              </button>
 
-            {/* Profile Menu Dropdown */}
-            {profileDropdownOpen && (
-              <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-white dark:bg-[#1e1f20] border border-neutral-200 dark:border-neutral-700/80 shadow-2xl py-3 z-50 text-neutral-800 dark:text-neutral-200 animate-in fade-in zoom-in-95">
-                {/* User Header */}
-                <div className="px-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
-                  <div className="font-semibold text-sm text-neutral-900 dark:text-white line-clamp-1">
-                    {session?.displayName}
+              {/* Profile Menu Dropdown */}
+              {profileDropdownOpen && (
+                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-white dark:bg-[#1e1f20] border border-neutral-200 dark:border-neutral-700/80 shadow-2xl py-3 z-50 text-neutral-800 dark:text-neutral-200 animate-in fade-in zoom-in-95">
+                  {/* User Header */}
+                  <div className="px-4 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+                    <div className="font-semibold text-sm text-neutral-900 dark:text-white line-clamp-1">
+                      {session.displayName}
+                    </div>
+                    <div className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1 mt-0.5">
+                      {session.email}
+                    </div>
+                    <div className="mt-2">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border inline-flex items-center gap-1 ${currentRoleBadge.color}`}>
+                        <RoleIcon className="w-3 h-3" />
+                        <span className="capitalize">{session.currentRole}</span>
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1 mt-0.5">
-                    {session?.email}
-                  </div>
-                  <div className="mt-2">
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border inline-flex items-center gap-1 ${currentRoleBadge.color}`}>
-                      <RoleIcon className="w-3 h-3" />
-                      <span className="capitalize">{session?.currentRole}</span>
-                    </span>
-                  </div>
-                </div>
 
-                {/* Links */}
-                <div className="py-2 px-2 space-y-1">
-                  {session?.currentRole === 'admin' && (
-                    <Link
-                      href="/admin/services"
-                      onClick={() => setProfileDropdownOpen(false)}
-                      className="w-full px-3 py-2 text-xs rounded-xl flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                  {/* Links */}
+                  <div className="py-2 px-2 space-y-1">
+                    {session.currentRole === 'admin' && (
+                      <Link
+                        href="/admin/services"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="w-full px-3 py-2 text-xs rounded-xl flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                      >
+                        <Settings className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                        <span>จัดการระบบ (Admin Panel)</span>
+                      </Link>
+                    )}
+
+                    {isDemoActive && (
+                      <Link
+                        href="/login"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="w-full px-3 py-2 text-xs rounded-xl flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                      >
+                        <UserIcon className="w-4 h-4 text-neutral-400" />
+                        <span>สลับบัญชี (Demo Users)</span>
+                      </Link>
+                    )}
+                  </div>
+
+                  {/* Sign Out */}
+                  <div className="pt-2 px-2 border-t border-neutral-100 dark:border-neutral-800">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full px-3 py-2 text-xs rounded-xl flex items-center gap-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-300 transition-colors font-medium text-left"
                     >
-                      <Settings className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-                      <span>จัดการระบบ (Admin Panel)</span>
-                    </Link>
-                  )}
-
-                  {isDemoActive && (
-                    <Link
-                      href="/login"
-                      onClick={() => setProfileDropdownOpen(false)}
-                      className="w-full px-3 py-2 text-xs rounded-xl flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                    >
-                      <UserIcon className="w-4 h-4 text-neutral-400" />
-                      <span>สลับบัญชี (Demo Users)</span>
-                    </Link>
-                  )}
+                      <LogOut className="w-4 h-4" />
+                      <span>ออกจากระบบ (Sign Out)</span>
+                    </button>
+                  </div>
                 </div>
-
-                {/* Sign Out */}
-                <div className="pt-2 px-2 border-t border-neutral-100 dark:border-neutral-800">
-                  <button
-                    onClick={handleSignOut}
-                    className="w-full px-3 py-2 text-xs rounded-xl flex items-center gap-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-300 transition-colors font-medium text-left"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>ออกจากระบบ (Sign Out)</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <div className="pl-1 border-l border-neutral-200 dark:border-neutral-800">
+              <Link
+                href="/login"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>เข้าสู่ระบบ</span>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </header>

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const session = await getCurrentUserSession();
 
     // Allow upload during initial setup wizard, or require admin role if already installed
-    if (installed && !session.roles.includes('admin')) {
+    if (installed && (!session || !session.roles.includes('admin'))) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin role required' },
         { status: 403 }

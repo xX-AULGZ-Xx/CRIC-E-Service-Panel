@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     const session = await getCurrentUserSession();
-    if (!session.roles.includes('admin')) {
+    if (!session || !session.roles.includes('admin')) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -41,7 +41,7 @@ export async function PUT(
 ) {
   try {
     const session = await getCurrentUserSession();
-    if (!session.roles.includes('admin')) {
+    if (!session || !session.roles.includes('admin')) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -98,7 +98,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getCurrentUserSession();
-    if (!session.roles.includes('admin')) {
+    if (!session || !session.roles.includes('admin')) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
     }
 

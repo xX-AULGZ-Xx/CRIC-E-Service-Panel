@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
     const session = await getCurrentUserSession();
-    if (!session.roles.includes('admin')) {
+    if (!session || !session.roles.includes('admin')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin role required' },
         { status: 403 }
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getCurrentUserSession();
-    if (!session.roles.includes('admin')) {
+    if (!session || !session.roles.includes('admin')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin role required' },
         { status: 403 }

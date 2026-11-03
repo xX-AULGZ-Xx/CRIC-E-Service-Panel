@@ -63,7 +63,7 @@ export async function GET(req: NextRequest, context: Context) {
 export async function PUT(req: NextRequest, context: Context) {
   try {
     const session = await getCurrentUserSession();
-    if (!session.roles.includes('admin')) {
+    if (!session || !session.roles.includes('admin')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin role required' },
         { status: 403 }
@@ -135,7 +135,7 @@ export async function PUT(req: NextRequest, context: Context) {
 export async function DELETE(req: NextRequest, context: Context) {
   try {
     const session = await getCurrentUserSession();
-    if (!session.roles.includes('admin')) {
+    if (!session || !session.roles.includes('admin')) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin role required' },
         { status: 403 }

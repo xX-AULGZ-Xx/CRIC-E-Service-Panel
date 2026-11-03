@@ -18,7 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   const session = await getCurrentUserSession();
-  if (session.currentRole !== 'admin') {
+  if (!session || session.currentRole !== 'admin') {
     redirect('/?unauthorized=1');
   }
 

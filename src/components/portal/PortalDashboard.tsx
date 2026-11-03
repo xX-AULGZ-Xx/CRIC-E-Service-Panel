@@ -149,7 +149,9 @@ export default function PortalDashboard() {
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-neutral-900 dark:text-white">
-              ยินดีต้อนรับ, {session?.displayName || 'ผู้ใช้งานวิทยาลัย'}
+              {session?.displayName
+                ? `ยินดีต้อนรับ, ${session.displayName}`
+                : `ยินดีต้อนรับสู่ ${settings?.portalTitle || 'CRIC E-Service Panel'}`}
             </h1>
 
             <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
@@ -185,7 +187,7 @@ export default function PortalDashboard() {
         </div>
 
         {/* Quick Favorites Section */}
-        {favorites.length > 0 && (
+        {session && favorites.length > 0 && (
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold tracking-wide text-neutral-700 dark:text-neutral-300 uppercase flex items-center gap-2">
@@ -235,17 +237,19 @@ export default function PortalDashboard() {
             บริการทั้งหมด ({services.length})
           </button>
 
-          <button
-            onClick={() => setSelectedCategory('favorites')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
-              selectedCategory === 'favorites'
-                ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40'
-                : 'bg-white dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white border border-neutral-200 dark:border-transparent'
-            }`}
-          >
-            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-            <span>รายการโปรด ({favorites.length})</span>
-          </button>
+          {session && (
+            <button
+              onClick={() => setSelectedCategory('favorites')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                selectedCategory === 'favorites'
+                  ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40'
+                  : 'bg-white dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white border border-neutral-200 dark:border-transparent'
+              }`}
+            >
+              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+              <span>รายการโปรด ({favorites.length})</span>
+            </button>
+          )}
 
           {categories.map((catName) => (
             <button
