@@ -37,30 +37,13 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    /* Design Tokens: Dark Theme (Default when host is dark) */
-    .cric-widget-root.cric-theme-dark {
-      --cric-bg: #1e1f20;
-      --cric-border: #3c4043;
-      --cric-header-border: rgba(60, 64, 67, 0.6);
-      --cric-text-title: #f1f3f4;
-      --cric-text-body: #e8eaed;
-      --cric-text-sub: #9aa0a6;
-      --cric-hover: #2d2e31;
-      --cric-footer-bg: #18191a;
-      --cric-footer-border: #3c4043;
-      --cric-link: #8ab4f8;
-      --cric-btn-bg: #1e1f20;
-      --cric-btn-border: #3c4043;
-      --cric-btn-color: #e3e3e3;
-      --cric-btn-hover-bg: #2d2e31;
-      --cric-btn-hover-color: #ffffff;
-      --cric-btn-active-border: #8ab4f8;
-      --cric-btn-active-color: #8ab4f8;
-      --cric-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
-    }
-
-    /* Design Tokens: Light Theme (When host is light e.g. RCMS or Light Portal) */
-    .cric-widget-root.cric-theme-light {
+    .cric-widget-root {
+      position: fixed;
+      top: 14px;
+      right: 18px;
+      z-index: 999999;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      /* Default tokens: Clean Light Theme */
       --cric-bg: rgba(255, 255, 255, 0.98);
       --cric-border: #e2e8f0;
       --cric-header-border: #f1f5f9;
@@ -81,12 +64,26 @@
       --cric-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
     }
 
-    .cric-widget-root {
-      position: fixed;
-      top: 14px;
-      right: 18px;
-      z-index: 999999;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    /* Dark Theme override: ONLY applied when host is explicitly dark */
+    .cric-widget-root.cric-theme-dark {
+      --cric-bg: #1e1f20;
+      --cric-border: #3c4043;
+      --cric-header-border: rgba(60, 64, 67, 0.6);
+      --cric-text-title: #f1f3f4;
+      --cric-text-body: #e8eaed;
+      --cric-text-sub: #9aa0a6;
+      --cric-hover: #2d2e31;
+      --cric-footer-bg: #18191a;
+      --cric-footer-border: #3c4043;
+      --cric-link: #8ab4f8;
+      --cric-btn-bg: #1e1f20;
+      --cric-btn-border: #3c4043;
+      --cric-btn-color: #e3e3e3;
+      --cric-btn-hover-bg: #2d2e31;
+      --cric-btn-hover-color: #ffffff;
+      --cric-btn-active-border: #8ab4f8;
+      --cric-btn-active-color: #8ab4f8;
+      --cric-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
     }
     .cric-widget-root.cric-widget-inline {
       position: relative;
@@ -141,13 +138,13 @@
       right: 0;
       width: 340px;
       max-height: 520px;
-      background: var(--cric-bg, #ffffff);
+      background: var(--cric-bg, #ffffff) !important;
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border: 1px solid var(--cric-border, #e2e8f0);
+      border: 1px solid var(--cric-border, #e2e8f0) !important;
       border-radius: 24px;
-      box-shadow: var(--cric-shadow, 0 16px 40px rgba(0,0,0,0.1));
-      color: var(--cric-text-body, #334155);
+      box-shadow: var(--cric-shadow, 0 16px 40px rgba(0,0,0,0.1)) !important;
+      color: var(--cric-text-body, #334155) !important;
       display: none;
       flex-direction: column;
       overflow: hidden;
@@ -166,13 +163,13 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid var(--cric-header-border, #f1f5f9);
+      border-bottom: 1px solid var(--cric-header-border, #f1f5f9) !important;
     }
     .cric-widget-header h4 {
       margin: 0;
       font-size: 15px;
       font-weight: 600;
-      color: var(--cric-text-title, #0f172a);
+      color: var(--cric-text-title, #0f172a) !important;
     }
     .cric-widget-body {
       padding: 12px;
@@ -192,7 +189,7 @@
       padding: 10px 4px;
       border-radius: 16px;
       transition: background 0.15s ease, transform 0.15s ease;
-      color: var(--cric-text-body, #334155);
+      color: var(--cric-text-body, #334155) !important;
       text-align: center;
     }
     .cric-widget-item:hover {
@@ -209,7 +206,7 @@
     .cric-widget-item span {
       font-size: 11px;
       font-weight: 500;
-      color: var(--cric-text-body, #334155);
+      color: var(--cric-text-body, #334155) !important;
       max-width: 80px;
       white-space: nowrap;
       overflow: hidden;
@@ -217,16 +214,16 @@
     }
     .cric-widget-footer {
       padding: 10px 16px;
-      background: var(--cric-footer-bg, #f8fafc);
-      border-top: 1px solid var(--cric-footer-border, #e2e8f0);
+      background: var(--cric-footer-bg, #f8fafc) !important;
+      border-top: 1px solid var(--cric-footer-border, #e2e8f0) !important;
       font-size: 11px;
-      color: var(--cric-text-sub, #64748b);
+      color: var(--cric-text-sub, #64748b) !important;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     .cric-widget-footer a {
-      color: var(--cric-link, #2563eb);
+      color: var(--cric-link, #2563eb) !important;
       font-weight: 500;
       text-decoration: none;
     }
@@ -277,7 +274,7 @@
       while (cur && cur !== document.documentElement) {
         const bg = window.getComputedStyle(cur).backgroundColor;
         if (bg && bg !== 'transparent' && !bg.startsWith('rgba(0, 0, 0, 0)')) {
-          const m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+          const m = bg.match(/rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+))?\)/);
           if (m) {
             const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
             if (a > 0.1) {
@@ -291,7 +288,7 @@
       if (body) {
         const bodyBg = window.getComputedStyle(body).backgroundColor;
         if (bodyBg && bodyBg !== 'transparent' && !bodyBg.startsWith('rgba(0, 0, 0, 0)')) {
-          const m = bodyBg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+          const m = bodyBg.match(/rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+))?\)/);
           if (m) {
             const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
             if (a > 0.1) {
