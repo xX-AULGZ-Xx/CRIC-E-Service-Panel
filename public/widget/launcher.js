@@ -328,10 +328,18 @@
     }
 
     try {
-      const res = await fetch(`${PORTAL_URL}/api/v1/services`, {
-        mode: 'cors',
-        credentials: 'include',
-      });
+      let res;
+      try {
+        res = await fetch(`${PORTAL_URL}/api/v1/services`, {
+          mode: 'cors',
+          credentials: 'include',
+        });
+      } catch (corsErr) {
+        // Resilient fallback without credentials if proxy/browser blocks credentials mode
+        res = await fetch(`${PORTAL_URL}/api/v1/services`, {
+          mode: 'cors',
+        });
+      }
       const data = await res.json();
       if (!grid) return;
 

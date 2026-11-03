@@ -4,18 +4,28 @@ import { verifySsoJwt } from '@/lib/jwt';
 export const dynamic = 'force-dynamic';
 
 function getCorsHeaders(req: NextRequest) {
-  const origin = req.headers.get('origin') || '';
+  const origin = req.headers.get('origin') || req.headers.get('referer') || '';
+  let cleanOrigin = '';
+  try {
+    if (origin.startsWith('http')) {
+      const u = new URL(origin);
+      cleanOrigin = `${u.protocol}//${u.host}`;
+    }
+  } catch {}
+
   const isAllowedOrigin = 
-    origin.endsWith('.cric.ac.th') || 
-    origin === 'https://cric.ac.th' ||
-    origin.includes('localhost') || 
-    origin.includes('127.0.0.1');
+    cleanOrigin.endsWith('.cric.ac.th') || 
+    cleanOrigin === 'https://cric.ac.th' ||
+    cleanOrigin.includes('localhost') || 
+    cleanOrigin.includes('127.0.0.1');
+
+  const allowedOrigin = isAllowedOrigin ? cleanOrigin : (origin || 'https://panel.cric.ac.th');
 
   return {
-    'Access-Control-Allow-Origin': isAllowedOrigin ? origin : '*',
-    'Access-Control-Allow-Credentials': isAllowedOrigin ? 'true' : 'false',
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
   };
 }
 
