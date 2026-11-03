@@ -104,6 +104,8 @@ function LoginContent() {
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [warningMsg, setWarningMsg] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
 
@@ -111,6 +113,12 @@ function LoginContent() {
     const errorParam = searchParams.get('error');
     if (errorParam) {
       setError(decodeURIComponent(errorParam));
+    }
+    if (searchParams.get('logout') === '1') {
+      setSuccessMsg('ออกจากระบบเรียบร้อยแล้ว');
+    }
+    if (searchParams.get('expired') === '1') {
+      setWarningMsg('เซสชันการเข้าสู่ระบบร่วมหมดอายุแล้ว กรุณาเข้าสู่ระบบใหม่');
     }
   }, [searchParams]);
 
@@ -264,6 +272,22 @@ function LoginContent() {
             <h2 className="text-base font-semibold text-neutral-900 dark:text-white">ลงชื่อเข้าใช้งาน</h2>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">เข้าถึงแดชบอร์ดและระบบสารสนเทศวิทยาลัย</p>
           </div>
+
+          {/* Success Message */}
+          {successMsg && (
+            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2.5 animate-in fade-in">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
+          {/* Warning / Expired Message */}
+          {warningMsg && (
+            <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2.5 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0 text-amber-500 dark:text-amber-400" />
+              <span>{warningMsg}</span>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (

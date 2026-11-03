@@ -42,7 +42,7 @@ function getLogoutUrl(req: NextRequest): string {
   const proto = req.headers.get('x-forwarded-proto') || (req.headers.get('x-forwarded-ssl') === 'on' ? 'https' : req.nextUrl.protocol.replace(':', ''));
   const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
   const baseUrl = `${proto}://${host}`;
-  const postLogoutRedirect = `${baseUrl}/login`;
+  const postLogoutRedirect = `${baseUrl}/login?logout=1`;
 
   const keycloakPublicUrl = getKeycloakPublicUrl(req);
   const realm = process.env.KEYCLOAK_REALM || 'cric-college';

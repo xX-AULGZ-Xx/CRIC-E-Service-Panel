@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import SessionGuard from "@/components/auth/SessionGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-full flex flex-col bg-slate-50 dark:bg-[#0a0b0c] text-neutral-900 dark:text-neutral-100 transition-colors duration-200">
         <ThemeProvider>
+          <SessionGuard />
           {children}
         </ThemeProvider>
       </body>
