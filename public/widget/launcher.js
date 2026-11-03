@@ -246,7 +246,7 @@
     const body = document.body;
 
     // 1. Check parent container attribute (e.g. data-cric-theme="light|dark")
-    const targetContainer = document.getElementById('cric-launcher-container') || document.querySelector('[data-cric-launcher]');
+    const targetContainer = document.getElementById('cric-launcher-container') || document.querySelector('[data-cric-launcher]') || root.parentElement;
     if (targetContainer) {
       const containerTheme = targetContainer.getAttribute('data-cric-theme') || targetContainer.getAttribute('data-theme');
       if (containerTheme === 'dark' || containerTheme === 'light') return containerTheme;
@@ -266,14 +266,42 @@
       docEl.classList.contains('light') ||
       (body && body.classList.contains('light')) ||
       docEl.getAttribute('data-theme') === 'light' ||
-      (body && body.getAttribute('data-theme') === 'light');
+      (body && body.getAttribute('data-theme') === 'light') ||
+      docEl.getAttribute('data-color-mode') === 'light';
 
     if (isLight) return 'light';
 
-    // 3. System preference fallback
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
+    // 3. Smart Background Luminance Detection (inspects actual rendered navbar/header/body color)
+    try {
+      let cur = targetContainer || root.parentElement;
+      while (cur && cur !== document.documentElement) {
+        const bg = window.getComputedStyle(cur).backgroundColor;
+        if (bg && bg !== 'transparent' && !bg.startsWith('rgba(0, 0, 0, 0)')) {
+          const m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+          if (m) {
+            const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+            if (a > 0.1) {
+              const lum = 0.299 * parseInt(m[1], 10) + 0.587 * parseInt(m[2], 10) + 0.114 * parseInt(m[3], 10);
+              return lum < 128 ? 'dark' : 'light';
+            }
+          }
+        }
+        cur = cur.parentElement;
+      }
+      if (body) {
+        const bodyBg = window.getComputedStyle(body).backgroundColor;
+        if (bodyBg && bodyBg !== 'transparent' && !bodyBg.startsWith('rgba(0, 0, 0, 0)')) {
+          const m = bodyBg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+          if (m) {
+            const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+            if (a > 0.1) {
+              const lum = 0.299 * parseInt(m[1], 10) + 0.587 * parseInt(m[2], 10) + 0.114 * parseInt(m[3], 10);
+              return lum < 128 ? 'dark' : 'light';
+            }
+          }
+        }
+      }
+    } catch (e) {}
 
     return 'light';
   }
@@ -347,6 +375,7 @@
     if (targetContainer) {
       root.classList.add('cric-widget-inline');
       targetContainer.appendChild(root);
+      applyTheme();
       return true;
     }
     return false;
@@ -482,6 +511,7 @@
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
+    applyTheme();
     isOpen = !isOpen;
     btn.classList.toggle('active', isOpen);
     popover.classList.toggle('open', isOpen);
