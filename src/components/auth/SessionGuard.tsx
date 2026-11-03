@@ -66,6 +66,8 @@ export default function SessionGuard() {
 
     // 3. Check cookies directly
     const verifySessionCookies = () => {
+      // If tab is hidden in the background, pause heartbeat checks to conserve client resources
+      if (typeof document !== 'undefined' && document.hidden) return;
       if (!wasLoggedInRef.current) return;
 
       const currentLoggedIn = getCookie('cric_logged_in');

@@ -88,6 +88,11 @@ export async function GET(req: NextRequest) {
       favoriteOrder: s.userFavorites?.[0]?.sortOrder ?? (s.isDefaultFavorite ? s.sortOrder : 999),
     }));
 
+    const responseHeaders = {
+      ...corsHeaders,
+      'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+    };
+
     if (isManageMode) {
       return NextResponse.json({
         success: true,
@@ -107,7 +112,7 @@ export async function GET(req: NextRequest) {
       role: filterRole,
       count: visibleServices.length,
       data: visibleServices,
-    }, { headers: corsHeaders });
+    }, { headers: responseHeaders });
   } catch (error: any) {
     console.error('Error fetching services:', error);
     return NextResponse.json(

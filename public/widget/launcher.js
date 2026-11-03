@@ -269,41 +269,86 @@
 
   let isOpen = false;
   let servicesLoaded = false;
+  const SERVICES_CACHE_KEY = 'cric_services_cache';
+  const SERVICES_CACHE_TTL = 60 * 1000; // 60s SWR window
 
-  async function loadServices() {
+  function renderServicesHtml(services) {
+    if (!Array.isArray(services) || services.length === 0) {
+      return `
+        <div style="grid-column: span 3; text-align: center; padding: 20px 0; font-size: 12px; color: #9aa0a6;">
+          ยังไม่มีบริการในระบบ
+        </div>
+      `;
+    }
+    return services
+      .map(
+        (srv) => `
+        <a href="${srv.url}" target="${srv.openInNewTab ? '_blank' : '_self'}" class="cric-widget-item" title="${srv.title}">
+          <img src="${srv.iconUrl && srv.iconUrl.startsWith('/') ? PORTAL_URL + srv.iconUrl : (srv.iconUrl || '')}" alt="${srv.title}" />
+          <span>${srv.title}</span>
+        </a>
+      `
+      )
+      .join('');
+  }
+
+  function getCachedServices() {
+    try {
+      const cached = sessionStorage.getItem(SERVICES_CACHE_KEY);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function setCachedServices(data) {
+    try {
+      sessionStorage.setItem(
+        SERVICES_CACHE_KEY,
+        JSON.stringify({ timestamp: Date.now(), data })
+      );
+    } catch (e) {}
+  }
+
+  async function loadServices(forceRefresh = false) {
+    const grid = document.getElementById('cric-widget-grid');
+    if (!grid) return;
+
+    // Fast-path: Render from cache instantly (0ms)
+    const cached = getCachedServices();
+    const isCacheFresh = cached && (Date.now() - cached.timestamp < SERVICES_CACHE_TTL);
+
+    if (cached && Array.isArray(cached.data)) {
+      grid.innerHTML = renderServicesHtml(cached.data);
+      servicesLoaded = true;
+      if (isCacheFresh && !forceRefresh) {
+        return; // Cache is fresh, avoid background request
+      }
+    }
+
     try {
       const res = await fetch(`${PORTAL_URL}/api/v1/services`, {
         mode: 'cors',
         credentials: 'include',
       });
       const data = await res.json();
-      const grid = document.getElementById('cric-widget-grid');
       if (!grid) return;
 
-      if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
+      if (data.success && Array.isArray(data.data)) {
+        setCachedServices(data.data);
+        grid.innerHTML = renderServicesHtml(data.data);
+        servicesLoaded = true;
+      } else if (!cached) {
         grid.innerHTML = `
           <div style="grid-column: span 3; text-align: center; padding: 20px 0; font-size: 12px; color: #9aa0a6;">
             ยังไม่มีบริการในระบบ
           </div>
         `;
-        return;
       }
-
-      grid.innerHTML = data.data
-        .map(
-          (srv) => `
-          <a href="${srv.url}" target="${srv.openInNewTab ? '_blank' : '_self'}" class="cric-widget-item" title="${srv.title}">
-            <img src="${srv.iconUrl && srv.iconUrl.startsWith('/') ? PORTAL_URL + srv.iconUrl : (srv.iconUrl || '')}" alt="${srv.title}" />
-            <span>${srv.title}</span>
-          </a>
-        `
-        )
-        .join('');
-      servicesLoaded = true;
     } catch (e) {
       console.error('[CRIC Widget] Failed to load services from', `${PORTAL_URL}/api/v1/services`, e);
-      const grid = document.getElementById('cric-widget-grid');
-      if (grid) {
+      if (!cached) {
         grid.innerHTML = `
           <div style="grid-column: span 3; text-align: center; padding: 18px 0; font-size: 12px; color: #f87171;">
             <div>ไม่สามารถเชื่อมต่อกับ Portal ได้</div>
@@ -321,7 +366,7 @@
                 กำลังโหลดบริการ...
               </div>
             `;
-            loadServices();
+            loadServices(true);
           });
         }
       }
@@ -360,8 +405,24 @@
       return null;
     }
 
+    function isTokenValid(token) {
+      if (!token || typeof token !== 'string') return false;
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return false;
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+          return false;
+        }
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     async function checkAndSyncSession() {
       if (isSyncing) return;
+      if (typeof document !== 'undefined' && document.hidden) return;
 
       const isCricDomain = window.location.hostname.includes('cric.ac.th');
       const pathname = window.location.pathname;
@@ -378,7 +439,11 @@
 
       const localToken = localStorage.getItem('token');
       const hasCricCookie = document.cookie.split(';').some((c) => c.trim().startsWith('cric_logged_in=true'));
-      const ssoSessionCookie = getCookie('cric_sso_session');
+      let ssoSessionCookie = getCookie('cric_sso_session');
+
+      if (ssoSessionCookie && !isTokenValid(ssoSessionCookie)) {
+        ssoSessionCookie = null;
+      }
 
       // CASE A: User is logged in to local app, but logged out of Central Portal
       if (isCricDomain && localToken && !hasCricCookie) {
@@ -406,7 +471,7 @@
               credentials: 'include',
             });
             const checkData = await checkRes.json();
-            if (checkData.authenticated && checkData.ssoToken) {
+            if (checkData.authenticated && checkData.ssoToken && isTokenValid(checkData.ssoToken)) {
               sessionToken = checkData.ssoToken;
             }
           } catch (e) {
@@ -463,8 +528,12 @@
       }
     });
 
-    // 3-second heartbeat
-    setInterval(checkAndSyncSession, 3000);
+    // Smart 4-second heartbeat (only active when tab is visible)
+    setInterval(() => {
+      if (!document.hidden) {
+        checkAndSyncSession();
+      }
+    }, 4000);
 
     // Expose global controller
     window.CricSSO = {
