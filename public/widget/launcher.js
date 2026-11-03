@@ -37,6 +37,50 @@
 
   const style = document.createElement('style');
   style.textContent = `
+    /* Design Tokens: Dark Theme (Default when host is dark) */
+    .cric-widget-root.cric-theme-dark {
+      --cric-bg: #1e1f20;
+      --cric-border: #3c4043;
+      --cric-header-border: rgba(60, 64, 67, 0.6);
+      --cric-text-title: #f1f3f4;
+      --cric-text-body: #e8eaed;
+      --cric-text-sub: #9aa0a6;
+      --cric-hover: #2d2e31;
+      --cric-footer-bg: #18191a;
+      --cric-footer-border: #3c4043;
+      --cric-link: #8ab4f8;
+      --cric-btn-bg: #1e1f20;
+      --cric-btn-border: #3c4043;
+      --cric-btn-color: #e3e3e3;
+      --cric-btn-hover-bg: #2d2e31;
+      --cric-btn-hover-color: #ffffff;
+      --cric-btn-active-border: #8ab4f8;
+      --cric-btn-active-color: #8ab4f8;
+      --cric-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+    }
+
+    /* Design Tokens: Light Theme (When host is light e.g. RCMS or Light Portal) */
+    .cric-widget-root.cric-theme-light {
+      --cric-bg: rgba(255, 255, 255, 0.98);
+      --cric-border: #e2e8f0;
+      --cric-header-border: #f1f5f9;
+      --cric-text-title: #0f172a;
+      --cric-text-body: #334155;
+      --cric-text-sub: #64748b;
+      --cric-hover: #f1f5f9;
+      --cric-footer-bg: #f8fafc;
+      --cric-footer-border: #e2e8f0;
+      --cric-link: #2563eb;
+      --cric-btn-bg: #ffffff;
+      --cric-btn-border: #e2e8f0;
+      --cric-btn-color: #475569;
+      --cric-btn-hover-bg: #f1f5f9;
+      --cric-btn-hover-color: #0f172a;
+      --cric-btn-active-border: #3b82f6;
+      --cric-btn-active-color: #2563eb;
+      --cric-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
     .cric-widget-root {
       position: fixed;
       top: 14px;
@@ -55,19 +99,7 @@
     .cric-widget-root.cric-widget-inline .cric-widget-btn {
       width: 36px;
       height: 36px;
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      color: #334155;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
-    }
-    .cric-widget-root.cric-widget-inline .cric-widget-btn:hover {
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-    .cric-widget-root.cric-widget-inline .cric-widget-btn.active {
-      background: #e2e8f0;
-      border-color: #3b82f6;
-      color: #2563eb;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
     .cric-widget-root.cric-widget-inline .cric-widget-popover {
       top: calc(100% + 8px);
@@ -77,26 +109,26 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: #1e1f20;
-      border: 1px solid #3c4043;
-      color: #e3e3e3;
+      background: var(--cric-btn-bg, #ffffff);
+      border: 1px solid var(--cric-btn-border, #e2e8f0);
+      color: var(--cric-btn-color, #475569);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       transition: all 0.2s ease;
       outline: none;
     }
     .cric-widget-btn:hover {
-      background: #2d2e31;
-      color: #ffffff;
+      background: var(--cric-btn-hover-bg, #f1f5f9);
+      color: var(--cric-btn-hover-color, #0f172a);
       transform: scale(1.05);
     }
     .cric-widget-btn.active {
-      background: #2d2e31;
-      border-color: #8ab4f8;
-      color: #8ab4f8;
+      background: var(--cric-btn-hover-bg, #f1f5f9);
+      border-color: var(--cric-btn-active-border, #3b82f6);
+      color: var(--cric-btn-active-color, #2563eb);
     }
     .cric-widget-btn svg {
       width: 20px;
@@ -109,15 +141,18 @@
       right: 0;
       width: 340px;
       max-height: 520px;
-      background: #1e1f20;
-      border: 1px solid #3c4043;
+      background: var(--cric-bg, #ffffff);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--cric-border, #e2e8f0);
       border-radius: 24px;
-      box-shadow: 0 12px 36px rgba(0,0,0,0.65);
-      color: #ffffff;
+      box-shadow: var(--cric-shadow, 0 16px 40px rgba(0,0,0,0.1));
+      color: var(--cric-text-body, #334155);
       display: none;
       flex-direction: column;
       overflow: hidden;
       animation: cric-scale-in 0.15s ease-out;
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .cric-widget-popover.open {
       display: flex;
@@ -131,13 +166,13 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(60,64,67,0.5);
+      border-bottom: 1px solid var(--cric-header-border, #f1f5f9);
     }
     .cric-widget-header h4 {
       margin: 0;
       font-size: 15px;
-      font-weight: 500;
-      color: #f1f3f4;
+      font-weight: 600;
+      color: var(--cric-text-title, #0f172a);
     }
     .cric-widget-body {
       padding: 12px;
@@ -156,12 +191,13 @@
       text-decoration: none;
       padding: 10px 4px;
       border-radius: 16px;
-      transition: background 0.15s ease;
-      color: #e8eaed;
+      transition: background 0.15s ease, transform 0.15s ease;
+      color: var(--cric-text-body, #334155);
       text-align: center;
     }
     .cric-widget-item:hover {
-      background: #2d2e31;
+      background: var(--cric-hover, #f1f5f9);
+      transform: translateY(-1px);
     }
     .cric-widget-item img {
       width: 38px;
@@ -172,7 +208,8 @@
     }
     .cric-widget-item span {
       font-size: 11px;
-      color: #e8eaed;
+      font-weight: 500;
+      color: var(--cric-text-body, #334155);
       max-width: 80px;
       white-space: nowrap;
       overflow: hidden;
@@ -180,16 +217,17 @@
     }
     .cric-widget-footer {
       padding: 10px 16px;
-      background: #18191a;
-      border-top: 1px solid #3c4043;
+      background: var(--cric-footer-bg, #f8fafc);
+      border-top: 1px solid var(--cric-footer-border, #e2e8f0);
       font-size: 11px;
-      color: #9aa0a6;
+      color: var(--cric-text-sub, #64748b);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     .cric-widget-footer a {
-      color: #8ab4f8;
+      color: var(--cric-link, #2563eb);
+      font-weight: 500;
       text-decoration: none;
     }
     .cric-widget-footer a:hover {
@@ -201,6 +239,67 @@
   // Create UI Elements
   const root = document.createElement('div');
   root.className = 'cric-widget-root';
+
+  // Adaptive Real-Time Theming System
+  function detectHostTheme() {
+    const docEl = document.documentElement;
+    const body = document.body;
+
+    // 1. Check parent container attribute (e.g. data-cric-theme="light|dark")
+    const targetContainer = document.getElementById('cric-launcher-container') || document.querySelector('[data-cric-launcher]');
+    if (targetContainer) {
+      const containerTheme = targetContainer.getAttribute('data-cric-theme') || targetContainer.getAttribute('data-theme');
+      if (containerTheme === 'dark' || containerTheme === 'light') return containerTheme;
+    }
+
+    // 2. Check documentElement or body classes/attributes
+    const isDark =
+      docEl.classList.contains('dark') ||
+      (body && body.classList.contains('dark')) ||
+      docEl.getAttribute('data-theme') === 'dark' ||
+      (body && body.getAttribute('data-theme') === 'dark') ||
+      docEl.getAttribute('data-color-mode') === 'dark';
+
+    if (isDark) return 'dark';
+
+    const isLight =
+      docEl.classList.contains('light') ||
+      (body && body.classList.contains('light')) ||
+      docEl.getAttribute('data-theme') === 'light' ||
+      (body && body.getAttribute('data-theme') === 'light');
+
+    if (isLight) return 'light';
+
+    // 3. System preference fallback
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+
+    return 'light';
+  }
+
+  function applyTheme() {
+    const theme = detectHostTheme();
+    root.classList.remove('cric-theme-light', 'cric-theme-dark');
+    root.classList.add(theme === 'dark' ? 'cric-theme-dark' : 'cric-theme-light');
+  }
+
+  // Initial theme application
+  applyTheme();
+
+  // Real-time MutationObserver to watch theme changes on html or body
+  try {
+    const observer = new MutationObserver(() => {
+      applyTheme();
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme', 'data-color-mode'] });
+    if (document.body) {
+      observer.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-theme', 'data-color-mode'] });
+    }
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+    }
+  } catch (e) {}
 
   const btn = document.createElement('button');
   btn.className = 'cric-widget-btn';

@@ -6,6 +6,7 @@ RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 COPY package.json package-lock.json ./
+COPY prisma ./prisma/
 RUN npm ci
 
 # Rebuild the source code only when needed
@@ -15,8 +16,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma Client (with retry in case of transient DNS hiccups)
-RUN npx prisma generate || (sleep 2 && npx prisma generate) || (sleep 5 && npx prisma generate)
+# Generate Prisma Client
+RUN npx prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
