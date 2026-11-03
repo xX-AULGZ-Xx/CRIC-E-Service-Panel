@@ -19,13 +19,17 @@ function getCorsHeaders(req: NextRequest) {
     cleanOrigin.includes('localhost') || 
     cleanOrigin.includes('127.0.0.1');
 
-  const allowedOrigin = isAllowedOrigin ? cleanOrigin : (origin || 'https://panel.cric.ac.th');
+  const allowedOrigin = isAllowedOrigin ? cleanOrigin : 'https://panel.cric.ac.th';
 
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'Vary': 'Origin',
   };
 }
 

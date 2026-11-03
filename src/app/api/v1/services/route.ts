@@ -23,13 +23,14 @@ function getCorsHeaders(req: NextRequest) {
     cleanOrigin.includes('localhost') || 
     cleanOrigin.includes('127.0.0.1');
 
-  const allowedOrigin = isAllowedOrigin ? cleanOrigin : (origin || 'https://panel.cric.ac.th');
+  const allowedOrigin = isAllowedOrigin ? cleanOrigin : 'https://panel.cric.ac.th';
 
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Vary': 'Origin',
   };
 }
 
@@ -64,6 +65,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const session = await getCurrentUserSession();
     const isManageMode = searchParams.get('all') === 'true';
+    const isLauncherMode = searchParams.get('launcher') === 'true';
     const filterRole = searchParams.get('role') || session?.currentRole || 'guest';
 
     let services: any[] = [];
@@ -98,7 +100,10 @@ export async function GET(req: NextRequest) {
 
     const responseHeaders = {
       ...corsHeaders,
-      'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Vary': 'Origin',
     };
 
     if (isManageMode) {
@@ -109,9 +114,12 @@ export async function GET(req: NextRequest) {
       }, { headers: corsHeaders });
     }
 
-    // Filter active services and check RBAC permissions
+    // Filter active services:
+    // When queried from the 9-dots launcher, show all active CRIC services as an app directory.
+    // Otherwise in portal view, check RBAC permissions.
     const visibleServices = enriched.filter((service) => {
       if (!service.isActive) return false;
+      if (isLauncherMode) return true;
       return isUserAuthorizedForService([filterRole], service.allowedRoles);
     });
 
