@@ -9,6 +9,7 @@ function clearAllCookies(response: NextResponse, host: string) {
     'cric_active_role',
     'cric_user_profile',
     'cric_sso_session',
+    'cric_is_demo',
     'cric_keycloak_state',
     'cric_keycloak_redirect_uri',
     'cric_keycloak_callback_url',
@@ -53,12 +54,20 @@ function getLogoutUrl(req: NextRequest): string {
 
 export async function POST(req: NextRequest) {
   const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
-  const logoutUrl = getLogoutUrl(req);
+  const isDemo = req.cookies.get('cric_is_demo')?.value === 'true';
+
+  const proto = req.headers.get('x-forwarded-proto') || (req.headers.get('x-forwarded-ssl') === 'on' ? 'https' : req.nextUrl.protocol.replace(':', ''));
+  const baseUrl = `${proto}://${host}`;
+  const directLoginRedirect = `${baseUrl}/login?logout=1`;
+
+  // If this was a simulated demo login, do NOT redirect to Keycloak SSO
+  const logoutUrl = isDemo ? null : getLogoutUrl(req);
 
   const response = NextResponse.json({
     success: true,
     message: 'ออกจากระบบเรียบร้อยแล้ว',
     logoutUrl,
+    redirectUrl: directLoginRedirect,
   });
 
   clearAllCookies(response, host);
@@ -67,9 +76,13 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
-  const logoutUrl = getLogoutUrl(req);
+  const isDemo = req.cookies.get('cric_is_demo')?.value === 'true';
 
-  const response = NextResponse.redirect(logoutUrl);
+  const proto = req.headers.get('x-forwarded-proto') || (req.headers.get('x-forwarded-ssl') === 'on' ? 'https' : req.nextUrl.protocol.replace(':', ''));
+  const baseUrl = `${proto}://${host}`;
+  const targetRedirect = isDemo ? `${baseUrl}/login?logout=1` : getLogoutUrl(req);
+
+  const response = NextResponse.redirect(targetRedirect);
   clearAllCookies(response, host);
   return response;
 }

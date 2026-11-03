@@ -56,7 +56,24 @@ export const DEFAULT_SETTINGS: SystemSettingsData = {
   googleHostedDomain: 'cric.ac.th',
 };
 
+export function isEnvDemoModeDisabled(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_DEMO_MODE === 'false' ||
+    process.env.DEMO_MODE === 'false'
+  );
+}
+
+export async function isDemoModeActive(): Promise<boolean> {
+  if (isEnvDemoModeDisabled()) {
+    return false;
+  }
+  const settings = await getSystemSettings();
+  return settings.demoModeEnabled !== false;
+}
+
 export async function getSystemSettings(): Promise<SystemSettingsData> {
+  const isEnvDisabled = isEnvDemoModeDisabled();
+
   try {
     const settings = await prisma.systemSetting.findUnique({
       where: { id: 'default' },
@@ -65,6 +82,7 @@ export async function getSystemSettings(): Promise<SystemSettingsData> {
       return {
         ...DEFAULT_SETTINGS,
         ...settings,
+        demoModeEnabled: isEnvDisabled ? false : settings.demoModeEnabled !== false,
       };
     }
   } catch (e) {
@@ -78,9 +96,13 @@ export async function getSystemSettings(): Promise<SystemSettingsData> {
       return {
         ...DEFAULT_SETTINGS,
         ...data,
+        demoModeEnabled: isEnvDisabled ? false : data.demoModeEnabled !== false,
       };
     } catch {}
   }
 
-  return DEFAULT_SETTINGS;
+  return {
+    ...DEFAULT_SETTINGS,
+    demoModeEnabled: isEnvDisabled ? false : DEFAULT_SETTINGS.demoModeEnabled,
+  };
 }

@@ -6,6 +6,7 @@ import { DEFAULT_USERS } from '@/lib/auth';
 import { findUserByLoginIdentifier, recordUserLogin, hashUserPassword } from '@/lib/users';
 import { UserRole } from '@/types/service';
 import { setUnifiedAuthCookies } from '@/lib/session';
+import { isDemoModeActive } from '@/lib/settings';
 
 function hashPassword(password: string): string {
   return hashUserPassword(password);
@@ -34,6 +35,9 @@ export async function POST(req: NextRequest) {
     let targetRole: UserRole | null = null;
     let customDisplayName: string | undefined;
     let customEmail: string | undefined;
+    let isDemoLogin = false;
+
+    const demoEnabled = await isDemoModeActive();
 
     // Check Master Admin from data/admin.json
     const adminFilePath = path.join(process.cwd(), 'data', 'admin.json');
@@ -46,7 +50,14 @@ export async function POST(req: NextRequest) {
 
     // Direct Demo Login
     if (demoRole && DEFAULT_USERS[demoRole]) {
+      if (!demoEnabled) {
+        return NextResponse.json(
+          { success: false, error: 'โหมดทดสอบถูกปิดใช้งานในสภาพแวดล้อมจริง (Production Mode)' },
+          { status: 403 }
+        );
+      }
       targetRole = demoRole;
+      isDemoLogin = true;
     } else if (username && password) {
       const trimmedUser = username.trim().toLowerCase();
       
@@ -61,7 +72,7 @@ export async function POST(req: NextRequest) {
         }
 
         const inputHash = hashPassword(password);
-        if (dbUser.passwordHash === inputHash || (password === 'admin123' && dbUser.role === 'admin')) {
+        if (dbUser.passwordHash === inputHash || (password === 'admin123' && dbUser.role === 'admin' && demoEnabled)) {
           targetRole = dbUser.role as UserRole;
           customDisplayName = dbUser.displayName;
           customEmail = dbUser.email;
@@ -71,18 +82,19 @@ export async function POST(req: NextRequest) {
 
       // 2. Check Master Admin fallback from data/admin.json
       if (!targetRole && masterAdmin && (trimmedUser === masterAdmin.email || trimmedUser === 'admin')) {
-        if (masterAdmin.passwordHash === hashPassword(password) || password === 'admin123') {
+        if (masterAdmin.passwordHash === hashPassword(password) || (password === 'admin123' && demoEnabled)) {
           targetRole = 'admin';
           customDisplayName = masterAdmin.name;
           customEmail = masterAdmin.email;
         }
       }
 
-      // 3. Check standard Demo Credentials
-      if (!targetRole) {
+      // 3. Check standard Demo Credentials (ONLY permitted if Demo Mode is active)
+      if (!targetRole && demoEnabled) {
         const match = DEMO_CREDENTIALS[trimmedUser];
         if (match && match.pass === password) {
           targetRole = match.role;
+          isDemoLogin = true;
         }
       }
 
@@ -115,6 +127,36 @@ export async function POST(req: NextRequest) {
 
     // Set unified authentication cookies across .cric.ac.th
     setUnifiedAuthCookies(response, userSession, host);
+
+    // Set or clear demo session indicator
+    const isCricDomain = host.includes('cric.ac.th');
+    const cookieDomain = isCricDomain ? '.cric.ac.th' : undefined;
+
+    if (isDemoLogin) {
+      response.cookies.set('cric_is_demo', 'true', {
+        path: '/',
+        domain: cookieDomain,
+        httpOnly: false,
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: 'lax',
+      });
+      response.cookies.set('cric_is_demo', 'true', {
+        path: '/',
+        httpOnly: false,
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: 'lax',
+      });
+    } else {
+      response.cookies.set('cric_is_demo', '', {
+        path: '/',
+        domain: cookieDomain,
+        maxAge: 0,
+      });
+      response.cookies.set('cric_is_demo', '', {
+        path: '/',
+        maxAge: 0,
+      });
+    }
 
     return response;
   } catch (error) {

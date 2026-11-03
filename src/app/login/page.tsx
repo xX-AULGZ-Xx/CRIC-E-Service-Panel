@@ -206,7 +206,9 @@ function LoginContent() {
     }
   };
 
-  const isDemoEnabled = settings ? settings.demoModeEnabled !== false : true;
+  const isDemoEnabled =
+    process.env.NEXT_PUBLIC_DEMO_MODE !== 'false' &&
+    (settings ? settings.demoModeEnabled !== false : true);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0b0c] text-neutral-900 dark:text-neutral-100 flex flex-col justify-between selection:bg-blue-600 selection:text-white relative overflow-hidden transition-colors duration-200">

@@ -28,6 +28,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
   const router = useRouter();
   const [session, setSession] = useState<UserSession | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [demoMode, setDemoMode] = useState<boolean>(true);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,6 +42,9 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
       if (data.success) {
         setSession(data.data);
         setIsLoggedIn(data.isLoggedIn !== false);
+        if (data.demoModeEnabled !== undefined) {
+          setDemoMode(data.demoModeEnabled);
+        }
       }
     } catch (e) {
       console.error('Failed to get session', e);
@@ -91,13 +95,15 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
       const data = await res.json();
       if (data.logoutUrl) {
         window.location.href = data.logoutUrl;
+      } else if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
       } else {
-        router.push('/login');
+        router.push('/login?logout=1');
         router.refresh();
       }
     } catch (e) {
       console.error('Logout error', e);
-      window.location.href = '/login';
+      window.location.href = '/login?logout=1';
     }
   };
 
@@ -121,6 +127,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
 
   const currentRoleBadge = getRoleBadge(session?.currentRole);
   const RoleIcon = currentRoleBadge.icon;
+  const isDemoActive = demoMode && settings?.demoModeEnabled !== false && process.env.NEXT_PUBLIC_DEMO_MODE !== 'false';
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-neutral-200 dark:border-neutral-800 bg-white/90 dark:bg-[#121314]/90 backdrop-blur-md px-4 lg:px-8 py-3 transition-colors duration-200">
@@ -170,7 +177,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
         {/* Right Action Icons: Role Switcher, Admin Button, Theme Toggle, 9-Dots Launcher, Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Role Switcher (Simulate Keycloak RBAC - Only in Demo/Test Mode) */}
-          {settings?.demoModeEnabled !== false && (
+          {isDemoActive && (
             <div className="relative">
               <button
                 onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
@@ -267,14 +274,16 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
                     </Link>
                   )}
 
-                  <Link
-                    href="/login"
-                    onClick={() => setProfileDropdownOpen(false)}
-                    className="w-full px-3 py-2 text-xs rounded-xl flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
-                  >
-                    <UserIcon className="w-4 h-4 text-neutral-400" />
-                    <span>สลับบัญชี (Demo Users)</span>
-                  </Link>
+                  {isDemoActive && (
+                    <Link
+                      href="/login"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="w-full px-3 py-2 text-xs rounded-xl flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                    >
+                      <UserIcon className="w-4 h-4 text-neutral-400" />
+                      <span>สลับบัญชี (Demo Users)</span>
+                    </Link>
+                  )}
                 </div>
 
                 {/* Sign Out */}

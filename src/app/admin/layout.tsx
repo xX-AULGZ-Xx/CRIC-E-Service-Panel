@@ -1,14 +1,25 @@
 import React from 'react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { isSystemInstalled } from '@/lib/install';
+import { getCurrentUserSession, isAuthenticatedUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!isSystemInstalled()) {
     redirect('/install');
+  }
+
+  const isAuth = await isAuthenticatedUser();
+  if (!isAuth) {
+    redirect('/login');
+  }
+
+  const session = await getCurrentUserSession();
+  if (session.currentRole !== 'admin') {
+    redirect('/?unauthorized=1');
   }
 
   return (

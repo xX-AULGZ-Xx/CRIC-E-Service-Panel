@@ -644,16 +644,22 @@ export default function AdminSettingsManager() {
                       }`}>
                         {settings.demoModeEnabled ? 'เปิด (Testing)' : 'ปิด (Production)'}
                       </span>
+                      {process.env.NEXT_PUBLIC_DEMO_MODE === 'false' && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                          ล็อกปิดถาวรโดย ENV
+                        </span>
+                      )}
                     </div>
                     <span className="text-xs text-neutral-500 dark:text-neutral-400 block">
-                      เมื่อเปิด: จะแสดงกล่องบัญชีทดสอบ (Demo Users) บนหน้า Login และปุ่มสลับบทบาท (Role Switcher) บน Navbar | เมื่อปิด: จะซ่อนบัญชีทดสอบทั้งหมดและเข้าสู่โหมดใช้งานจริง (Production)
+                      เมื่อเปิด: จะแสดงกล่องบัญชีทดสอบ (Demo Users) บนหน้า Login และปุ่มสลับบทบาท (Role Switcher) บน Navbar | เมื่อปิด: จะซ่อนบัญชีทดสอบทั้งหมดและเข้าสู่โหมดใช้งานจริง (Production) พร้อมบล็อกรหัสผ่าน Demo ในระดับ API
                     </span>
                   </div>
                   <input
                     type="checkbox"
+                    disabled={process.env.NEXT_PUBLIC_DEMO_MODE === 'false'}
                     checked={settings.demoModeEnabled}
                     onChange={(e) => handleChange('demoModeEnabled', e.target.checked)}
-                    className="w-5 h-5 rounded text-blue-600 bg-neutral-100 dark:bg-neutral-900 border-neutral-300 dark:border-neutral-700"
+                    className="w-5 h-5 rounded text-blue-600 bg-neutral-100 dark:bg-neutral-900 border-neutral-300 dark:border-neutral-700 disabled:opacity-50"
                   />
                 </label>
 
