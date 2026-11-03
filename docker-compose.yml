@@ -51,6 +51,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      network: host
     container_name: cric-portal
     restart: always
     ports:
