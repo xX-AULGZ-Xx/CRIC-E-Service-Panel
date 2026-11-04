@@ -4,12 +4,103 @@ import fs from 'fs';
 import path from 'path';
 import { DEFAULT_USERS } from '@/lib/auth';
 import { findUserByLoginIdentifier, recordUserLogin, hashUserPassword } from '@/lib/users';
-import { UserRole } from '@/types/service';
+import { UserRole, UserSession } from '@/types/service';
 import { setUnifiedAuthCookies } from '@/lib/session';
 import { isDemoModeActive } from '@/lib/settings';
 
 function hashPassword(password: string): string {
   return hashUserPassword(password);
+}
+
+interface SubsystemAuthResult {
+  success: boolean;
+  user?: {
+    id?: string | number;
+    username?: string;
+    email?: string;
+    full_name?: string;
+    position?: string;
+    role?: string;
+    avatar_url?: string;
+    department?: any;
+    organization?: string;
+  };
+  nativeToken?: string;
+  sourceApp: string;
+}
+
+async function verifyPlanCredentials(username: string, password: string): Promise<SubsystemAuthResult | null> {
+  const planUrls = [
+    process.env.PLAN_API_URL,
+    'https://plan.cric.ac.th',
+    'http://localhost:5050',
+    'http://127.0.0.1:5050',
+  ].filter(Boolean) as string[];
+
+  for (const baseUrl of planUrls) {
+    try {
+      const url = `${baseUrl.replace(/\/$/, '')}/api/v1/auth/login`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        signal: AbortSignal.timeout(4000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const user = data.user || data.data?.user;
+        const nativeToken = data.token || data.data?.token;
+        if (data && data.success && user) {
+          return {
+            success: true,
+            user,
+            nativeToken,
+            sourceApp: 'plan',
+          };
+        }
+      }
+    } catch {
+      // try next url or ignore
+    }
+  }
+  return null;
+}
+
+async function verifyRcmsCredentials(username: string, password: string): Promise<SubsystemAuthResult | null> {
+  const rcmsUrls = [
+    process.env.RCMS_API_URL,
+    'https://rcms.cric.ac.th',
+    'http://localhost:5060',
+    'http://127.0.0.1:5060',
+  ].filter(Boolean) as string[];
+
+  for (const baseUrl of rcmsUrls) {
+    try {
+      const url = `${baseUrl.replace(/\/$/, '')}/api/v1/auth/login`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        signal: AbortSignal.timeout(4000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const user = data.data?.user || data.user;
+        const nativeToken = data.data?.token || data.token;
+        if (data && data.success && user) {
+          return {
+            success: true,
+            user,
+            nativeToken,
+            sourceApp: 'rcms',
+          };
+        }
+      }
+    } catch {
+      // try next url or ignore
+    }
+  }
+  return null;
 }
 
 const DEMO_CREDENTIALS: Record<string, { role: UserRole; pass: string }> = {
@@ -26,16 +117,21 @@ const DEMO_CREDENTIALS: Record<string, { role: UserRole; pass: string }> = {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { username, password, demoRole } = body as {
+    const { username, password, demoRole, app, redirectUri } = body as {
       username?: string;
       password?: string;
       demoRole?: UserRole;
+      app?: string;
+      redirectUri?: string;
     };
 
     let targetRole: UserRole | null = null;
     let customDisplayName: string | undefined;
     let customEmail: string | undefined;
     let isDemoLogin = false;
+    let nativeToken: string | undefined;
+    let sourceSubsystem: string | undefined;
+    let subUserObj: any = null;
 
     const demoEnabled = await isDemoModeActive();
 
@@ -98,6 +194,51 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // 4. Subsystem Verification (Proxy Auth to Plan or RCMS)
+      if (!targetRole) {
+        let subsystemAuth: SubsystemAuthResult | null = null;
+        const appHint = (app || '').toLowerCase();
+        const redirectHint = (redirectUri || '').toLowerCase();
+
+        // 4.1 Prioritize caller app hint
+        if (appHint === 'plan' || redirectHint.includes('plan.cric.ac.th') || redirectHint.includes(':8001')) {
+          subsystemAuth = await verifyPlanCredentials(username, password);
+        } else if (appHint === 'rcms' || redirectHint.includes('rcms.cric.ac.th') || redirectHint.includes(':3001')) {
+          subsystemAuth = await verifyRcmsCredentials(username, password);
+        }
+
+        // 4.2 Cascade Fallback: Check Plan then RCMS if not authenticated yet
+        if (!subsystemAuth) {
+          if (appHint !== 'plan') {
+            subsystemAuth = await verifyPlanCredentials(username, password);
+          }
+          if (!subsystemAuth && appHint !== 'rcms') {
+            subsystemAuth = await verifyRcmsCredentials(username, password);
+          }
+        }
+
+        if (subsystemAuth && subsystemAuth.user) {
+          subUserObj = subsystemAuth.user;
+          const rawRole = (subUserObj.role || '').toLowerCase();
+          let mappedRole: UserRole = 'teacher';
+          if (rawRole === 'admin' || rawRole === 'director' || rawRole === 'super_admin') {
+            mappedRole = 'admin';
+          } else if (rawRole === 'student') {
+            mappedRole = 'student';
+          } else if (rawRole === 'staff' || rawRole === 'planning_officer') {
+            mappedRole = 'staff';
+          } else {
+            mappedRole = 'teacher';
+          }
+
+          targetRole = mappedRole;
+          customDisplayName = subUserObj.full_name || subUserObj.username || username;
+          customEmail = subUserObj.email || `${subUserObj.username || username}@cric.ac.th`;
+          nativeToken = subsystemAuth.nativeToken;
+          sourceSubsystem = subsystemAuth.sourceApp;
+        }
+      }
+
       if (!targetRole) {
         return NextResponse.json(
           { success: false, error: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง' },
@@ -111,11 +252,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const baseSession = DEFAULT_USERS[targetRole];
-    const userSession = {
+    const baseSession = DEFAULT_USERS[targetRole] || DEFAULT_USERS.teacher;
+    const userSession: UserSession = {
       ...baseSession,
+      userId: subUserObj?.id ? String(subUserObj.id) : baseSession.userId,
+      username: subUserObj?.username || username || baseSession.username,
       displayName: customDisplayName || baseSession.displayName,
       email: customEmail || baseSession.email,
+      avatarUrl: (subUserObj?.avatar_url) || baseSession.avatarUrl,
+      currentRole: targetRole,
+      roles: [targetRole],
     };
     const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
     
@@ -128,6 +274,8 @@ export async function POST(req: NextRequest) {
       message: `เข้าสู่ระบบสำเร็จในฐานะ ${targetRole}`,
       data: userSession,
       ssoToken,
+      nativeToken,
+      sourceSubsystem,
       redirectUrl: targetRole === 'admin' ? '/admin/services' : '/',
     });
 

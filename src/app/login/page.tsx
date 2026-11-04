@@ -253,12 +253,15 @@ function LoginContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isDemoModalOpen]);
 
-  const finishLoginAndRedirect = (ssoToken?: string) => {
+  const finishLoginAndRedirect = (ssoToken?: string, nativeToken?: string) => {
     if (redirectUri && isAllowedRedirect(redirectUri)) {
       if (redirectUri.startsWith('http://') || redirectUri.startsWith('https://')) {
         const targetUrl = new URL(redirectUri);
         if (ssoToken) {
           targetUrl.searchParams.set('sso_token', ssoToken);
+        }
+        if (nativeToken) {
+          targetUrl.searchParams.set('token', nativeToken);
         }
         window.location.href = targetUrl.toString();
         return;
@@ -282,12 +285,17 @@ function LoginContent() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({
+          username,
+          password,
+          app: appParam || (callerApp ? callerApp.id : undefined),
+          redirectUri: redirectUri || undefined,
+        }),
       });
       const data = await res.json();
 
       if (data.success) {
-        finishLoginAndRedirect(data.ssoToken);
+        finishLoginAndRedirect(data.ssoToken, data.nativeToken);
       } else {
         setError(data.error || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
       }
