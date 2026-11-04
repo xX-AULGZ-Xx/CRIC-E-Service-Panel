@@ -38,6 +38,15 @@ export const DEFAULT_USERS: Record<UserRole, UserSession> = {
     roles: ['student'],
     currentRole: 'student',
   },
+  guest: {
+    userId: 'user-guest-000',
+    username: 'guest',
+    displayName: 'บุคคลทั่วไป / สาธารณะ (Guest / Public)',
+    email: 'guest@cric.ac.th',
+    avatarUrl: undefined,
+    roles: ['guest'],
+    currentRole: 'guest',
+  },
 };
 
 export async function getCurrentUserSession(): Promise<UserSession | null> {
@@ -78,18 +87,19 @@ export async function isAuthenticatedUser(): Promise<boolean> {
 }
 
 export function isUserAuthorizedForService(userRoles: string[], serviceAllowedRoles: string[]): boolean {
-  // If guest / unauthenticated, only allow public services
+  // If service has no specific roles assigned or explicitly allows 'guest', it is public to everyone
+  if (!serviceAllowedRoles || serviceAllowedRoles.length === 0 || serviceAllowedRoles.includes('guest')) {
+    // However, if user is guest/unauthenticated, they can ONLY see services that allow guest or have no restrictions
+    return true;
+  }
+
+  // If user is guest / unauthenticated, but service does NOT include 'guest', deny access
   if (!userRoles || userRoles.length === 0 || userRoles.includes('guest')) {
-    return !serviceAllowedRoles || serviceAllowedRoles.length === 0 || serviceAllowedRoles.includes('guest');
+    return false;
   }
 
   // Admin role can always see all services
   if (userRoles.includes('admin')) {
-    return true;
-  }
-
-  // If service has no specific roles assigned, it's public to all authenticated users
-  if (!serviceAllowedRoles || serviceAllowedRoles.length === 0) {
     return true;
   }
 

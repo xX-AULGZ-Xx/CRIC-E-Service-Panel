@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'teacher' | 'staff' | 'admin';
+export type UserRole = 'student' | 'teacher' | 'staff' | 'admin' | 'guest';
 
 export interface ServiceItem {
   id: string;

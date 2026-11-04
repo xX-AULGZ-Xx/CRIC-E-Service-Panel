@@ -17,6 +17,8 @@ import {
   Settings,
   Globe,
   AlertTriangle,
+  Building2,
+  LogIn,
   Mail,
   Phone
 } from 'lucide-react';
@@ -28,6 +30,7 @@ export default function PortalDashboard() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [scopeFilter, setScopeFilter] = useState<'all' | 'public' | 'internal'>('all');
   const [copiedEmbed, setCopiedEmbed] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
 
@@ -88,6 +91,11 @@ export default function PortalDashboard() {
     return <MaintenanceScreen settings={settings} />;
   }
 
+  // Check if a service is accessible to guests / public
+  const isServicePublic = (srv: ServiceItem) =>
+    !srv.allowedRoles || srv.allowedRoles.length === 0 || srv.allowedRoles.includes('guest');
+  const isServiceInternal = (srv: ServiceItem) => !isServicePublic(srv);
+
   // Filter services
   const filteredServices = services.filter((srv) => {
     const matchesSearch =
@@ -102,7 +110,14 @@ export default function PortalDashboard() {
         ? srv.isFavorite
         : srv.category?.name === selectedCategory;
 
-    return matchesSearch && matchesCategory;
+    const matchesScope =
+      scopeFilter === 'all'
+        ? true
+        : scopeFilter === 'public'
+        ? isServicePublic(srv)
+        : isServiceInternal(srv);
+
+    return matchesSearch && matchesCategory && matchesScope;
   });
 
   // Extract distinct category names
@@ -119,7 +134,7 @@ export default function PortalDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0b0c] text-neutral-900 dark:text-neutral-100 flex flex-col justify-between transition-colors duration-200">
       {/* Top Navbar */}
-      <Navbar settings={settings} onSearchChange={(q) => setSearchQuery(q)} />
+      <Navbar settings={settings} onSearchChange={(q) => setSearchQuery(q)} onRoleChange={() => loadData()} />
 
       {/* Admin Maintenance Mode Notice Banner */}
       {settings?.maintenanceMode && session?.currentRole === 'admin' && (
@@ -221,6 +236,80 @@ export default function PortalDashboard() {
           </section>
         )}
 
+        {/* Guest Mode Callout Banner */}
+        {(!session || session.currentRole === 'guest') && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-gradient-to-r from-teal-500/10 via-sky-500/10 to-blue-500/10 border border-teal-500/20 text-neutral-800 dark:text-neutral-200 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                <Globe className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-teal-800 dark:text-teal-300 flex items-center gap-1.5">
+                  <span>คุณกำลังเข้าใช้งานในมุมมอง "บุคคลทั่วไป / สาธารณะ" (Guest View)</span>
+                </div>
+                <div className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                  ระบบแสดงเฉพาะบริการสาธารณะที่เปิดให้บุคคลภายนอกเข้าใช้งานได้ หากเป็นนักเรียน นักศึกษา หรือบุคลากร สามารถเข้าสู่ระบบเพื่อใช้งานระบบภายในทั้งหมด
+                </div>
+              </div>
+            </div>
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all shrink-0 hover:scale-102"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>เข้าสู่ระบบ (Sign In)</span>
+            </Link>
+          </div>
+        )}
+
+        {/* Quick Scope Filter: All | Public | Internal (for authenticated users who have both types) */}
+        {session && session.currentRole !== 'guest' && (
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <div className="inline-flex p-1 rounded-2xl bg-neutral-200/60 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+              <button
+                onClick={() => setScopeFilter('all')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  scopeFilter === 'all'
+                    ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-xs font-semibold'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+              >
+                บริการทั้งหมด ({services.length})
+              </button>
+              <button
+                onClick={() => setScopeFilter('public')}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  scopeFilter === 'public'
+                    ? 'bg-emerald-600 text-white shadow-xs font-semibold'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-emerald-700 dark:hover:text-emerald-300'
+                }`}
+              >
+                <span>🌐 บริการทั่วไป / สาธารณะ</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${scopeFilter === 'public' ? 'bg-emerald-700 text-emerald-100' : 'bg-neutral-200 dark:bg-neutral-800'}`}>
+                  {services.filter(isServicePublic).length}
+                </span>
+              </button>
+              <button
+                onClick={() => setScopeFilter('internal')}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  scopeFilter === 'internal'
+                    ? 'bg-indigo-600 text-white shadow-xs font-semibold'
+                    : 'text-neutral-600 dark:text-neutral-400 hover:text-indigo-700 dark:hover:text-indigo-300'
+                }`}
+              >
+                <span>🏛️ บริการภายในสถานศึกษา</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${scopeFilter === 'internal' ? 'bg-indigo-700 text-indigo-100' : 'bg-neutral-200 dark:bg-neutral-800'}`}>
+                  {services.filter(isServiceInternal).length}
+                </span>
+              </button>
+            </div>
+
+            <div className="text-xs text-neutral-500 dark:text-neutral-400 hidden sm:block">
+              มุมมองผู้ใช้งาน: <strong className="text-neutral-800 dark:text-neutral-200 capitalize">{session.currentRole}</strong>
+            </div>
+          </div>
+        )}
+
         {/* Filter Categories Bar */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-neutral-200 dark:border-neutral-800/80">
           <button
@@ -317,17 +406,33 @@ export default function PortalDashboard() {
                       </div>
 
                       <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={(e) => toggleFavorite(service.id, e)}
-                          title={service.isFavorite ? 'นำออกจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
-                          className="p-2 rounded-full text-neutral-400 hover:text-amber-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                        >
-                          <Star
-                            className={`w-4 h-4 ${
-                              service.isFavorite ? 'text-amber-500 fill-amber-500' : ''
-                            }`}
-                          />
-                        </button>
+                        {/* Scope Badge: Public / Internal */}
+                        {isServicePublic(service) ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                            <Globe className="w-2.5 h-2.5 text-emerald-500" />
+                            <span>บริการทั่วไป</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 shadow-2xs">
+                            <Building2 className="w-2.5 h-2.5 text-indigo-500" />
+                            <span>บริการภายใน</span>
+                          </span>
+                        )}
+
+                        {/* Favorite button (only for authenticated users) */}
+                        {session && session.currentRole !== 'guest' && (
+                          <button
+                            onClick={(e) => toggleFavorite(service.id, e)}
+                            title={service.isFavorite ? 'นำออกจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                            className="p-1.5 rounded-full text-neutral-400 hover:text-amber-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                          >
+                            <Star
+                              className={`w-3.5 h-3.5 ${
+                                service.isFavorite ? 'text-amber-500 fill-amber-500' : ''
+                              }`}
+                            />
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -343,19 +448,27 @@ export default function PortalDashboard() {
 
                   {/* Footer: Roles Badge & Launch Button */}
                   <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800/60 flex items-center justify-between gap-2">
-                    <div className="flex flex-wrap gap-1">
-                      {service.allowedRoles.slice(0, 2).map((role) => (
-                        <span
-                          key={role}
-                          className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
-                        >
-                          {role}
+                    <div className="flex flex-wrap gap-1 items-center">
+                      {isServicePublic(service) ? (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30">
+                          🌐 ทุกคน (Public)
                         </span>
-                      ))}
-                      {service.allowedRoles.length > 2 && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
-                          +{service.allowedRoles.length - 2}
-                        </span>
+                      ) : (
+                        <>
+                          {service.allowedRoles.slice(0, 2).map((role) => (
+                            <span
+                              key={role}
+                              className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                            >
+                              {role}
+                            </span>
+                          ))}
+                          {service.allowedRoles.length > 2 && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
+                              +{service.allowedRoles.length - 2}
+                            </span>
+                          )}
+                        </>
                       )}
                     </div>
 

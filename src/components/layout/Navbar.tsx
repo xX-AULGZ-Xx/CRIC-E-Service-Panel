@@ -16,6 +16,7 @@ import {
   ChevronDown,
   LogOut,
   LogIn,
+  Globe,
   User as UserIcon
 } from 'lucide-react';
 
@@ -121,6 +122,8 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
         return { label: 'Teacher', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30', icon: GraduationCap };
       case 'staff':
         return { label: 'Staff', color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30', icon: Briefcase };
+      case 'guest':
+        return { label: 'Guest', color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/30', icon: Globe };
       default:
         return { label: 'Student', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30', icon: UserCheck };
     }
@@ -195,7 +198,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
                   <div className="px-3 py-1.5 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider border-b border-neutral-100 dark:border-neutral-800">
                     สลับบทบาท (Role View)
                   </div>
-                  {(['student', 'teacher', 'staff', 'admin'] as UserRole[]).map((role) => (
+                  {(['guest', 'student', 'teacher', 'staff', 'admin'] as UserRole[]).map((role) => (
                     <button
                       key={role}
                       onClick={() => handleRoleSwitch(role)}

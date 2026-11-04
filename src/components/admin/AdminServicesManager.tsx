@@ -68,6 +68,14 @@ const PRESET_ICONS: PresetIcon[] = [
   { label: 'อินเทอร์เน็ต / Wi-Fi วิทยาลัย', category: 'tools', url: 'https://cdn-icons-png.flaticon.com/512/93/93158.png' },
 ];
 
+const AVAILABLE_ROLES: { role: UserRole; label: string; icon: string; short: string }[] = [
+  { role: 'guest', label: 'บุคคลทั่วไป / สาธารณะ', icon: '🌐', short: 'guest' },
+  { role: 'student', label: 'นักศึกษา', icon: '🎓', short: 'student' },
+  { role: 'teacher', label: 'ครู / อาจารย์', icon: '👨‍🏫', short: 'teacher' },
+  { role: 'staff', label: 'บุคลากร / จนท.', icon: '💼', short: 'staff' },
+  { role: 'admin', label: 'ผู้ดูแลระบบ', icon: '🛡️', short: 'admin' },
+];
+
 export default function AdminServicesManager() {
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
@@ -427,8 +435,10 @@ export default function AdminServicesManager() {
                         srv.allowedRoles.map((role) => (
                           <span
                             key={role}
-                            className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                              role === 'admin'
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1 ${
+                              role === 'guest'
+                                ? 'bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30'
+                                : role === 'admin'
                                 ? 'bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-500/30'
                                 : role === 'teacher'
                                 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30'
@@ -437,7 +447,7 @@ export default function AdminServicesManager() {
                                 : 'bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-500/30'
                             }`}
                           >
-                            {role}
+                            {role === 'guest' ? '🌐 บุคคลทั่วไป' : role}
                           </span>
                         ))
                       )}
@@ -864,15 +874,18 @@ export default function AdminServicesManager() {
                 <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
                   กลุ่มผู้ใช้ที่มีสิทธิ์เข้าถึง (RBAC Allowed Roles)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {(['student', 'teacher', 'staff', 'admin'] as UserRole[]).map((role) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                  {AVAILABLE_ROLES.map(({ role, label, icon }) => (
                     <label
                       key={role}
                       className={`flex items-center gap-2 p-2 rounded-xl border text-xs cursor-pointer select-none transition-all ${
                         allowedRoles.includes(role)
-                          ? 'bg-blue-50 dark:bg-blue-600/20 border-blue-500 text-blue-700 dark:text-white font-medium shadow-sm'
+                          ? role === 'guest'
+                            ? 'bg-teal-50 dark:bg-teal-900/30 border-teal-500 text-teal-800 dark:text-teal-200 font-medium shadow-sm'
+                            : 'bg-blue-50 dark:bg-blue-600/20 border-blue-500 text-blue-700 dark:text-white font-medium shadow-sm'
                           : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300 dark:hover:border-neutral-700'
                       }`}
+                      title={label}
                     >
                       <input
                         type="checkbox"
@@ -880,7 +893,8 @@ export default function AdminServicesManager() {
                         onChange={() => toggleRole(role)}
                         className="w-3.5 h-3.5 rounded text-blue-600 focus:ring-0 bg-neutral-100 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700"
                       />
-                      <span className="capitalize">{role}</span>
+                      <span>{icon}</span>
+                      <span className="truncate">{label}</span>
                     </label>
                   ))}
                 </div>
