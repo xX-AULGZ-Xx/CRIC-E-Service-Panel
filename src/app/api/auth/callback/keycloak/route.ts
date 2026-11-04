@@ -221,7 +221,12 @@ export async function GET(req: NextRequest) {
       ? targetCallbackUrl 
       : (assignedRole === 'admin' ? '/admin/services' : '/');
 
-    const response = NextResponse.redirect(new URL(finalTarget, baseUrl));
+    const redirectUrlObj = new URL(finalTarget, baseUrl);
+    if (finalTarget.startsWith('http://') || finalTarget.startsWith('https://')) {
+      redirectUrlObj.searchParams.set('sso_token', ssoSessionJwt);
+    }
+
+    const response = NextResponse.redirect(redirectUrlObj);
 
     // Set unified session cookies across .cric.ac.th
     setUnifiedAuthCookies(response, userProfile, host);

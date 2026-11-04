@@ -6,7 +6,7 @@ export function setUnifiedAuthCookies(
   response: NextResponse,
   userProfile: UserSession,
   host: string
-) {
+): string {
   const isCricDomain = host.includes('cric.ac.th');
   const cookieDomain = isCricDomain ? '.cric.ac.th' : undefined;
 
@@ -45,4 +45,6 @@ export function setUnifiedAuthCookies(
       });
     }
   });
+
+  return ssoSessionJwt;
 }

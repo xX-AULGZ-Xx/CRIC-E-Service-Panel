@@ -18,10 +18,14 @@ import {
   ExternalLink,
   FlaskConical,
   X,
-  CheckCircle2
+  CheckCircle2,
+  LogOut,
+  Building2,
+  ShieldCheck,
+  ChevronRight
 } from 'lucide-react';
 import ThemeToggleButton from '@/components/theme/ThemeToggleButton';
-import { UserRole, SystemSetting } from '@/types/service';
+import { UserRole, SystemSetting, UserSession } from '@/types/service';
 
 interface DemoUserCard {
   role: UserRole;
@@ -92,12 +96,91 @@ const DEMO_USERS: DemoUserCard[] = [
   },
 ];
 
+interface CallerAppInfo {
+  id: string;
+  name: string;
+  nameEn: string;
+  icon: string;
+  badgeColor: string;
+  desc: string;
+}
+
+const CALLER_APPS: Record<string, CallerAppInfo> = {
+  plan: {
+    id: 'plan',
+    name: 'ระบบบริหารจัดการงานแผนงานและโครงการ (CRIC Plan)',
+    nameEn: 'Vocational Plan System',
+    icon: '📋',
+    badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25',
+    desc: 'ระบบเสนอโครงการดิจิทัล สายการอนุมัติ 4 ขั้นตอน ตรวจสอบงบประมาณ 4 ฝ่าย',
+  },
+  rcms: {
+    id: 'rcms',
+    name: 'ระบบลงทะเบียน ออกเกียรติบัตร และประเมินความพึงพอใจ (RCMS)',
+    nameEn: 'Registration & Certificate System',
+    icon: '🎓',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25',
+    desc: 'ระบบลงทะเบียนกิจกรรม ออกเกียรติบัตรออนไลน์ และแบบประเมินความพึงพอใจ',
+  },
+  reg: {
+    id: 'reg',
+    name: 'ระบบงานทะเบียนและวัดผล (E-Registrar)',
+    nameEn: 'E-Registrar System',
+    icon: '📚',
+    badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25',
+    desc: 'บริการข้อมูลการศึกษา ผลการเรียน ตารางเรียน ตารางสอบ',
+  },
+};
+
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+}
+
+function isAllowedRedirect(urlStr: string): boolean {
+  if (!urlStr) return false;
+  if (urlStr.startsWith('/') && !urlStr.startsWith('//')) return true;
+  try {
+    const u = new URL(urlStr);
+    return (
+      u.hostname.endsWith('.cric.ac.th') ||
+      u.hostname === 'cric.ac.th' ||
+      u.hostname === 'localhost' ||
+      u.hostname === '127.0.0.1'
+    );
+  } catch {
+    return false;
+  }
+}
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
+
+  // Extract Caller / Redirect Parameters
+  const rawRedirectUri = searchParams.get('redirect_uri') || searchParams.get('callbackUrl') || '';
+  const redirectUri = isAllowedRedirect(rawRedirectUri) ? rawRedirectUri : '';
+  const appParam = (searchParams.get('app') || searchParams.get('client_id') || '').toLowerCase();
+
+  // Infer caller app information
+  let callerApp: CallerAppInfo | null = null;
+  if (appParam && CALLER_APPS[appParam]) {
+    callerApp = CALLER_APPS[appParam];
+  } else if (redirectUri) {
+    if (redirectUri.includes('plan.cric.ac.th') || redirectUri.includes(':8001')) {
+      callerApp = CALLER_APPS.plan;
+    } else if (redirectUri.includes('rcms.cric.ac.th') || redirectUri.includes(':3001')) {
+      callerApp = CALLER_APPS.rcms;
+    } else if (redirectUri.includes('reg.cric.ac.th')) {
+      callerApp = CALLER_APPS.reg;
+    }
+  }
 
   const [settings, setSettings] = useState<SystemSetting | null>(null);
+  const [existingUser, setExistingUser] = useState<UserSession | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -116,9 +199,11 @@ function LoginContent() {
     }
     if (searchParams.get('logout') === '1') {
       setSuccessMsg('ออกจากระบบเรียบร้อยแล้ว');
+      setExistingUser(null);
     }
     if (searchParams.get('expired') === '1') {
       setWarningMsg('เซสชันการเข้าสู่ระบบร่วมหมดอายุแล้ว กรุณาเข้าสู่ระบบใหม่');
+      setExistingUser(null);
     }
   }, [searchParams]);
 
@@ -141,7 +226,21 @@ function LoginContent() {
         }
       })
       .catch((err) => console.error(err));
-  }, [router]);
+
+    // Check if active session already exists on Portal (Account Confirmation mode)
+    const isLoggedOutUrl = searchParams.get('logout') === '1' || searchParams.get('expired') === '1';
+    if (!isLoggedOutUrl && typeof document !== 'undefined') {
+      const loggedIn = getCookie('cric_logged_in') === 'true';
+      const ssoSession = getCookie('cric_sso_session');
+      const rawProfile = getCookie('cric_user_profile');
+      if ((loggedIn || ssoSession) && rawProfile) {
+        try {
+          const parsed = JSON.parse(decodeURIComponent(rawProfile));
+          setExistingUser(parsed);
+        } catch {}
+      }
+    }
+  }, [router, searchParams]);
 
   // Handle escape key to close demo modal
   useEffect(() => {
@@ -153,6 +252,26 @@ function LoginContent() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isDemoModalOpen]);
+
+  const finishLoginAndRedirect = (ssoToken?: string) => {
+    if (redirectUri && isAllowedRedirect(redirectUri)) {
+      if (redirectUri.startsWith('http://') || redirectUri.startsWith('https://')) {
+        const targetUrl = new URL(redirectUri);
+        if (ssoToken) {
+          targetUrl.searchParams.set('sso_token', ssoToken);
+        }
+        window.location.href = targetUrl.toString();
+        return;
+      } else {
+        router.push(redirectUri);
+        router.refresh();
+        return;
+      }
+    }
+
+    // Default internal portal redirect
+    window.location.href = '/';
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,8 +287,7 @@ function LoginContent() {
       const data = await res.json();
 
       if (data.success) {
-        router.push(callbackUrl);
-        router.refresh();
+        finishLoginAndRedirect(data.ssoToken);
       } else {
         setError(data.error || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
       }
@@ -194,8 +312,7 @@ function LoginContent() {
 
       if (data.success) {
         setIsDemoModalOpen(false);
-        router.push(callbackUrl);
-        router.refresh();
+        finishLoginAndRedirect(data.ssoToken);
       } else {
         setError(data.error || 'เข้าสู่ระบบด้วยบัญชีทดสอบไม่สำเร็จ');
       }
@@ -204,6 +321,18 @@ function LoginContent() {
     } finally {
       setDemoLoading(null);
     }
+  };
+
+  const handleSwitchAccount = () => {
+    // Clear shared domain cookies (.cric.ac.th) and host cookies
+    const expireStr = '=; Path=/; Domain=.cric.ac.th; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    const hostExpire = '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    const cookieNames = ['cric_logged_in', 'cric_sso_session', 'cric_active_role', 'cric_user_profile'];
+    cookieNames.forEach((n) => {
+      document.cookie = n + expireStr;
+      document.cookie = n + hostExpire;
+    });
+    setExistingUser(null);
   };
 
   const isDemoEnabled =
@@ -238,7 +367,7 @@ function LoginContent() {
               </span>
             </div>
             <p className="text-[11px] text-neutral-500 dark:text-neutral-400 -mt-0.5">
-              {settings?.collegeNameTh || 'วิทยาลัยอาชีวศึกษา CRIC'}
+              {settings?.collegeNameTh || 'วิทยาลัยการอาชีพเชียงราย'}
             </p>
           </div>
         </Link>
@@ -264,131 +393,228 @@ function LoginContent() {
             เข้าสู่ระบบบริการดิจิทัล
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
-            {settings?.collegeNameTh || 'วิทยาลัยอาชีวศึกษา CRIC'} — One Account for All Services
+            {settings?.collegeNameTh || 'วิทยาลัยการอาชีพเชียงราย'} — One Account for All Services
           </p>
         </div>
 
+        {/* Caller Application Context Banner */}
+        {callerApp && (
+          <div className="mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-sky-500/10 border border-blue-500/25 flex items-center gap-3.5 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-white dark:bg-neutral-800 shadow-sm flex items-center justify-center text-xl shrink-0">
+              {callerApp.icon}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                <span>กำลังเข้าสู่ระบบเพื่อใช้งาน</span>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white truncate">
+                {callerApp.name}
+              </p>
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+                {callerApp.desc}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* 1-Page Minimalist Glassmorphism Card */}
         <div className="bg-white/85 dark:bg-[#131417]/85 backdrop-blur-2xl border border-neutral-200/90 dark:border-neutral-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-blue-500/5 dark:shadow-black/60 space-y-6 transition-all duration-200">
-          <div>
-            <h2 className="text-base font-semibold text-neutral-900 dark:text-white">ลงชื่อเข้าใช้งาน</h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">เข้าถึงแดชบอร์ดและระบบสารสนเทศวิทยาลัย</p>
-          </div>
-
-          {/* Success Message */}
-          {successMsg && (
-            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2.5 animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
-              <span>{successMsg}</span>
-            </div>
-          )}
-
-          {/* Warning / Expired Message */}
-          {warningMsg && (
-            <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2.5 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 shrink-0 text-amber-500 dark:text-amber-400" />
-              <span>{warningMsg}</span>
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 dark:text-rose-400" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Google Workspace SSO Primary Button */}
-          {settings?.googleAuthEnabled && (
-            <div className="space-y-4">
-              <button
-                type="button"
-                disabled={googleLoading}
-                onClick={() => {
-                  setGoogleLoading(true);
-                  setError(null);
-                  window.location.href = '/api/auth/keycloak?idp=google';
-                }}
-                className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-neutral-50 dark:bg-[#1c1d22] dark:hover:bg-[#25262c] border border-neutral-200/90 dark:border-neutral-700/80 text-neutral-800 dark:text-neutral-100 font-medium text-sm flex items-center justify-center gap-3 shadow-sm hover:shadow transition-all active:scale-[0.99] disabled:opacity-60 group"
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>{googleLoading ? 'กำลังพาคุณไปยัง Google Workspace...' : 'เข้าสู่ระบบด้วย Google Workspace'}</span>
-              </button>
-
-              {/* Divider */}
-              <div className="relative flex items-center justify-center">
-                <div className="border-t border-neutral-200 dark:border-neutral-800 w-full" />
-                <span className="bg-white/85 dark:bg-[#131417]/85 px-3 text-[11px] text-neutral-400 uppercase tracking-wider absolute">
-                  หรือลงชื่อเข้าใช้ด้วยบัญชีวิทยาลัย
+          
+          {/* CASE A: Active Session Found -> Account Confirmation / Selector */}
+          {existingUser ? (
+            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>เซสชันปัจจุบันของคุณ (Active Account)</span>
                 </span>
+                <h2 className="text-lg font-bold text-neutral-900 dark:text-white mt-2">
+                  ดำเนินการต่อด้วยบัญชีนี้
+                </h2>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  คุณลงชื่อเข้าใช้งานในระบบส่วนกลางไว้แล้ว ต้องการเข้าใช้งานต่อด้วยบัญชีนี้หรือไม่?
+                </p>
               </div>
-            </div>
-          )}
 
-          {/* Standard Username & Password Form */}
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                ชื่อผู้ใช้งานหรืออีเมล (Username / Email)
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="เช่น admin, teacher, student"
-                  className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/80 dark:bg-neutral-950/80 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-black transition-all"
-                />
+              {/* User Profile Card */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-neutral-900/80 border border-neutral-200/90 dark:border-neutral-800 flex items-center gap-3.5">
+                {existingUser.avatarUrl ? (
+                  <img
+                    src={existingUser.avatarUrl}
+                    alt={existingUser.displayName}
+                    className="w-12 h-12 rounded-full object-cover ring-2 ring-blue-500/30 shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-blue-600 text-white font-bold text-lg flex items-center justify-center shrink-0">
+                    {(existingUser.displayName || existingUser.username || 'U').substring(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+                      {existingUser.displayName}
+                    </p>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 uppercase">
+                      {existingUser.currentRole}
+                    </span>
+                  </div>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+                    {existingUser.email || `@${existingUser.username}`}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                รหัสผ่าน (Password)
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="รหัสผ่านเข้าใช้งาน"
-                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50/80 dark:bg-neutral-950/80 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-black transition-all"
-                />
+              {/* Action Buttons */}
+              <div className="space-y-3">
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors"
+                  onClick={() => {
+                    const ssoCookie = getCookie('cric_sso_session') || undefined;
+                    finishLoginAndRedirect(ssoCookie);
+                  }}
+                  className="w-full py-3 px-4 rounded-xl font-bold text-sm text-white shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 hover:from-blue-700 hover:via-indigo-700 hover:to-sky-600 shadow-blue-500/25"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <span>เข้าใช้งานในชื่อ {existingUser.displayName}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSwitchAccount}
+                  className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 transition-all flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>ใช้บัญชีอื่น / สลับบัญชี (Switch Account)</span>
                 </button>
               </div>
             </div>
+          ) : (
+            /* CASE B: Standard Login Form */
+            <>
+              <div>
+                <h2 className="text-base font-semibold text-neutral-900 dark:text-white">ลงชื่อเข้าใช้งาน</h2>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {callerApp ? `เข้าสู่ระบบเพื่อใช้งาน ${callerApp.name}` : 'เข้าถึงแดชบอร์ดและระบบสารสนเทศวิทยาลัย'}
+                </p>
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-semibold text-sm shadow-md shadow-blue-600/25 transition-all active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              {loading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span>เข้าสู่ระบบ (Sign In)</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+              {/* Success Message */}
+              {successMsg && (
+                <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2.5 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
+                  <span>{successMsg}</span>
+                </div>
               )}
-            </button>
-          </form>
+
+              {/* Warning / Expired Message */}
+              {warningMsg && (
+                <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2.5 animate-in fade-in">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-500 dark:text-amber-400" />
+                  <span>{warningMsg}</span>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {error && (
+                <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2 animate-in fade-in">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 dark:text-rose-400" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* Google Workspace SSO Primary Button */}
+              {settings?.googleAuthEnabled && (
+                <div className="space-y-4">
+                  <button
+                    type="button"
+                    disabled={googleLoading}
+                    onClick={() => {
+                      setGoogleLoading(true);
+                      setError(null);
+                      const targetParam = redirectUri && isAllowedRedirect(redirectUri) ? redirectUri : '/';
+                      window.location.href = `/api/auth/keycloak?idp=google&callbackUrl=${encodeURIComponent(targetParam)}`;
+                    }}
+                    className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-neutral-50 dark:bg-[#1c1d22] dark:hover:bg-[#25262c] border border-neutral-200/90 dark:border-neutral-700/80 text-neutral-800 dark:text-neutral-100 font-medium text-sm flex items-center justify-center gap-3 shadow-sm hover:shadow transition-all active:scale-[0.99] disabled:opacity-60 group"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                    </svg>
+                    <span>{googleLoading ? 'กำลังพาคุณไปยัง Google Workspace...' : 'เข้าสู่ระบบด้วย Google Workspace'}</span>
+                  </button>
+
+                  {/* Divider */}
+                  <div className="relative flex items-center justify-center">
+                    <div className="border-t border-neutral-200 dark:border-neutral-800 w-full" />
+                    <span className="bg-white/85 dark:bg-[#131417]/85 px-3 text-[11px] text-neutral-400 uppercase tracking-wider absolute">
+                      หรือลงชื่อเข้าใช้ด้วยบัญชีวิทยาลัย
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Standard Username & Password Form */}
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+                    ชื่อผู้ใช้งานหรืออีเมล (Username / Email)
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      required
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="เช่น admin, teacher, student"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/80 dark:bg-neutral-950/80 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-black transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+                    รหัสผ่าน (Password)
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="รหัสผ่านเข้าใช้งาน"
+                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50/80 dark:bg-neutral-950/80 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-black transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 dark:hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-semibold text-sm shadow-md shadow-blue-600/25 transition-all active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>เข้าสู่ระบบ (Sign In)</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            </>
+          )}
         </div>
       </main>
 

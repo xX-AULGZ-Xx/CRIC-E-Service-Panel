@@ -118,10 +118,16 @@ export async function POST(req: NextRequest) {
       email: customEmail || baseSession.email,
     };
     const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
+    
+    // Create temporary response to sign and set cookies
+    const dummyRes = new NextResponse();
+    const ssoToken = setUnifiedAuthCookies(dummyRes, userSession, host);
+
     const response = NextResponse.json({
       success: true,
       message: `เข้าสู่ระบบสำเร็จในฐานะ ${targetRole}`,
       data: userSession,
+      ssoToken,
       redirectUrl: targetRole === 'admin' ? '/admin/services' : '/',
     });
 
