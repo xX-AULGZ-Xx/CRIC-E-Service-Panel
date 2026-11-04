@@ -164,8 +164,8 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
           </Link>
         </div>
 
-        {/* Global Search Bar */}
-        <div className="flex-1 max-w-md mx-2 sm:mx-6">
+        {/* Desktop Search Bar (Hidden on Mobile) */}
+        <div className="hidden sm:block flex-1 max-w-md mx-3 sm:mx-6">
           <div className="relative">
             <Search className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -182,7 +182,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Role Switcher (Simulate Keycloak RBAC - Only in Demo/Test Mode) */}
           {isDemoActive && (
-            <div className="relative">
+            <div className="relative hidden md:block">
               <button
                 onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-medium transition-all ${currentRoleBadge.color} hover:opacity-90`}
@@ -266,6 +266,34 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
                     </div>
                   </div>
 
+                  {/* Mobile Role Switcher (Visible only on < md) */}
+                  {isDemoActive && (
+                    <div className="md:hidden py-2 px-3 border-b border-neutral-100 dark:border-neutral-800">
+                      <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">
+                        สลับบทบาท (Role View)
+                      </div>
+                      <div className="grid grid-cols-2 gap-1">
+                        {(['guest', 'student', 'teacher', 'staff', 'admin'] as UserRole[]).map((role) => (
+                          <button
+                            key={role}
+                            onClick={() => {
+                              handleRoleSwitch(role);
+                              setProfileDropdownOpen(false);
+                            }}
+                            className={`px-2.5 py-1.5 text-xs rounded-xl flex items-center justify-between text-left transition-colors ${
+                              session?.currentRole === role
+                                ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold'
+                                : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                            }`}
+                          >
+                            <span className="capitalize">{role}</span>
+                            {session?.currentRole === role && <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Links */}
                   <div className="py-2 px-2 space-y-1">
                     {session.currentRole === 'admin' && (
@@ -315,6 +343,20 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
               </Link>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Mobile Search Bar Row (Visible ONLY on mobile < sm) */}
+      <div className="block sm:hidden max-w-7xl mx-auto pt-2.5">
+        <div className="relative">
+          <Search className="w-4 h-4 text-neutral-400 dark:text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearch}
+            placeholder="ค้นหาบริการภายในวิทยาลัย..."
+            className="w-full pl-9 pr-4 py-2 bg-neutral-100 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-700/60 rounded-full text-xs text-neutral-800 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/60 transition-all shadow-2xs"
+          />
         </div>
       </div>
     </header>

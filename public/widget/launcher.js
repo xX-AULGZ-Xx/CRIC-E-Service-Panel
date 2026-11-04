@@ -137,7 +137,8 @@
       top: 50px;
       right: 0;
       width: 340px;
-      max-height: 520px;
+      max-width: calc(100vw - 28px);
+      max-height: min(520px, 80vh);
       background: var(--cric-bg, #ffffff) !important;
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);

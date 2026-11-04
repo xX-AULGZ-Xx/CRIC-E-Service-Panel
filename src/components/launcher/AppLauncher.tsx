@@ -105,7 +105,7 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
       {/* Google-Style Popover Menu */}
       {isOpen && (
         <div
-          className="absolute right-0 mt-3 w-[360px] max-h-[580px] overflow-hidden rounded-3xl bg-white dark:bg-[#1e1f20] border border-neutral-200 dark:border-[#3c4043] shadow-2xl z-50 flex flex-col text-neutral-800 dark:text-white animate-in fade-in zoom-in-95 duration-150"
+          className="absolute right-0 mt-2 sm:mt-3 w-[calc(100vw-24px)] sm:w-[360px] max-w-[360px] max-h-[75vh] sm:max-h-[580px] overflow-hidden rounded-2xl sm:rounded-3xl bg-white dark:bg-[#1e1f20] border border-neutral-200 dark:border-[#3c4043] shadow-2xl z-50 flex flex-col text-neutral-800 dark:text-white animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Header: Your Favorites & Edit Button */}
           <div className="px-5 pt-4 pb-2 flex items-center justify-between border-b border-neutral-100 dark:border-[#3c4043]/40">
