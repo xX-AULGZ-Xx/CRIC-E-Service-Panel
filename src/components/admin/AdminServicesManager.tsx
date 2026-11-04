@@ -15,22 +15,57 @@ import {
   ExternalLink,
   Search,
   Layers,
-  Image as ImageIcon
+  Image as ImageIcon,
+  X,
+  Link2,
+  Sparkles,
+  RefreshCw,
+  Eye,
+  CheckCircle2,
 } from 'lucide-react';
 
-const PRESET_ICONS = [
-  { label: 'Google Gmail', url: 'https://cdn-icons-png.flaticon.com/512/732/732200.png' },
-  { label: 'Google Drive', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965300.png' },
-  { label: 'Google Classroom', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965278.png' },
-  { label: 'Google Docs', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965280.png' },
-  { label: 'Google Sheets', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965313.png' },
-  { label: 'Google Slides', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965316.png' },
-  { label: 'Google Calendar', url: 'https://cdn-icons-png.flaticon.com/512/5968/5968499.png' },
-  { label: 'Google Meet', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965306.png' },
-  { label: 'Gemini AI', url: 'https://cdn-icons-png.flaticon.com/512/11865/11865326.png' },
-  { label: 'Library Books', url: 'https://cdn-icons-png.flaticon.com/512/3145/3145765.png' },
-  { label: 'Student Portal', url: 'https://cdn-icons-png.flaticon.com/512/3429/3429284.png' },
-  { label: 'IT Helpdesk', url: 'https://cdn-icons-png.flaticon.com/512/4233/4233830.png' },
+interface PresetIcon {
+  label: string;
+  category: 'cric' | 'google' | 'tools';
+  url: string;
+  badge?: string;
+}
+
+const PRESET_ICONS: PresetIcon[] = [
+  // 🏛️ ระบบวิทยาลัย CRIC
+  { label: 'ตราสัญลักษณ์ วก.เชียงราย (CRIC)', category: 'cric', url: '/uploads/cric-logo-borderless.png', badge: 'Official' },
+  { label: 'ระบบแผนงานและโครงการ (CRIC Plan)', category: 'cric', url: 'https://cdn-icons-png.flaticon.com/512/8899/8899687.png', badge: 'Plan' },
+  { label: 'ระบบลงทะเบียนและเกียรติบัตร (RCMS)', category: 'cric', url: 'https://cdn-icons-png.flaticon.com/512/3135/3135763.png', badge: 'RCMS' },
+  { label: 'ระบบงานทะเบียนวัดผล (E-Registrar)', category: 'cric', url: 'https://cdn-icons-png.flaticon.com/512/3429/3429284.png', badge: 'Reg' },
+  { label: 'ระบบห้องสมุดดิจิทัล (E-Library)', category: 'cric', url: 'https://cdn-icons-png.flaticon.com/512/3145/3145765.png' },
+  { label: 'ระบบแจ้งซ่อมบำรุง (IT Helpdesk)', category: 'cric', url: 'https://cdn-icons-png.flaticon.com/512/4233/4233830.png' },
+  { label: 'ระบบประกันคุณภาพ (SAR / QA)', category: 'cric', url: 'https://cdn-icons-png.flaticon.com/512/1055/1055644.png' },
+  { label: 'งานการเงินและบัญชีสถานศึกษา', category: 'cric', url: 'https://cdn-icons-png.flaticon.com/512/2830/2830284.png' },
+  { label: 'งานกิจการนักเรียนนักศึกษา', category: 'cric', url: 'https://cdn-icons-png.flaticon.com/512/3135/3135810.png' },
+  { label: 'ระบบยืนยันตัวตนกลาง (CRIC Central SSO)', category: 'cric', url: 'https://cdn-icons-png.flaticon.com/512/9446/9446864.png', badge: 'SSO' },
+
+  // 🌐 Google Workspace
+  { label: 'Google Gmail', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/732/732200.png' },
+  { label: 'Google Drive', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965300.png' },
+  { label: 'Google Classroom', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965278.png' },
+  { label: 'Google Docs', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965280.png' },
+  { label: 'Google Sheets', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965313.png' },
+  { label: 'Google Slides', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965316.png' },
+  { label: 'Google Forms', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965293.png' },
+  { label: 'Google Calendar', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/5968/5968499.png' },
+  { label: 'Google Meet', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965306.png' },
+  { label: 'Google Chat', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965275.png' },
+  { label: 'Google Keep', category: 'google', url: 'https://cdn-icons-png.flaticon.com/512/2965/2965304.png' },
+
+  // ⚡ เครื่องมือยอดนิยม & AI
+  { label: 'Gemini AI', category: 'tools', url: 'https://cdn-icons-png.flaticon.com/512/11865/11865326.png', badge: 'AI' },
+  { label: 'ChatGPT AI', category: 'tools', url: 'https://cdn-icons-png.flaticon.com/512/12222/12222560.png', badge: 'AI' },
+  { label: 'Canva Design', category: 'tools', url: 'https://cdn-icons-png.flaticon.com/512/5968/5968770.png' },
+  { label: 'Microsoft 365 / Office', category: 'tools', url: 'https://cdn-icons-png.flaticon.com/512/732/732221.png' },
+  { label: 'Zoom Video Conferencing', category: 'tools', url: 'https://cdn-icons-png.flaticon.com/512/4401/4401470.png' },
+  { label: 'YouTube Learning', category: 'tools', url: 'https://cdn-icons-png.flaticon.com/512/1384/1384060.png' },
+  { label: 'GitHub Repository', category: 'tools', url: 'https://cdn-icons-png.flaticon.com/512/733/733553.png' },
+  { label: 'อินเทอร์เน็ต / Wi-Fi วิทยาลัย', category: 'tools', url: 'https://cdn-icons-png.flaticon.com/512/93/93158.png' },
 ];
 
 export default function AdminServicesManager() {
@@ -53,6 +88,13 @@ export default function AdminServicesManager() {
   const [isDefaultFavorite, setIsDefaultFavorite] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // Logo Selector Enhancements
+  const [logoMode, setLogoMode] = useState<'upload' | 'presets' | 'url'>('upload');
+  const [isDragging, setIsDragging] = useState(false);
+  const [iconCategory, setIconCategory] = useState<'all' | 'cric' | 'google' | 'tools'>('all');
+  const [iconSearch, setIconSearch] = useState('');
+  const [imgError, setImgError] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -91,6 +133,10 @@ export default function AdminServicesManager() {
     setIsActive(true);
     setIsDefaultFavorite(false);
     setMessage(null);
+    setLogoMode('upload');
+    setImgError(false);
+    setIconSearch('');
+    setIconCategory('all');
     setModalOpen(true);
   };
 
@@ -106,12 +152,32 @@ export default function AdminServicesManager() {
     setIsActive(service.isActive);
     setIsDefaultFavorite(service.isDefaultFavorite);
     setMessage(null);
+    setLogoMode(service.iconUrl?.startsWith('http') && !service.iconUrl.includes('flaticon') ? 'url' : 'presets');
+    setImgError(false);
+    setIconSearch('');
+    setIconCategory('all');
     setModalOpen(true);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processFileUpload = async (file: File) => {
+    const allowed = [
+      'image/png',
+      'image/jpeg',
+      'image/jpg',
+      'image/svg+xml',
+      'image/webp',
+      'image/gif',
+      'image/x-icon',
+      'image/vnd.microsoft.icon',
+    ];
+    if (!allowed.includes(file.type.toLowerCase())) {
+      alert('ประเภทไฟล์ไม่ถูกต้อง รองรับเฉพาะ PNG, JPG, WebP, SVG, GIF และ ICO');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('ขนาดไฟล์เกินกำหนด (สูงสุดไม่เกิน 5MB)');
+      return;
+    }
 
     setUploading(true);
     const formData = new FormData();
@@ -123,15 +189,45 @@ export default function AdminServicesManager() {
         body: formData,
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.url) {
         setIconUrl(data.url);
+        setImgError(false);
       } else {
-        alert(data.error || 'อัปโหลดล้มเหลว');
+        alert(data.error || 'อัปโหลดรูปภาพไม่สำเร็จ');
       }
     } catch {
-      alert('เกิดข้อผิดพลาดในการอัปโหลดไฟล์');
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่ออัปโหลดไฟล์');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processFileUpload(file);
+    e.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await processFileUpload(file);
     }
   };
 
@@ -485,62 +581,286 @@ export default function AdminServicesManager() {
                 />
               </div>
 
-              {/* Icon Selection & Upload */}
-              <div>
-                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                  ไอคอนบริการ (Service Icon) *
-                </label>
+              {/* Icon Selection & Upload Section */}
+              <div className="space-y-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                    โลโก้และไอคอนบริการ (Service Icon & Logo) *
+                  </label>
+                  {iconUrl && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIconUrl('');
+                        setImgError(false);
+                      }}
+                      className="text-[11px] text-rose-500 hover:text-rose-600 font-medium flex items-center gap-1 transition"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>ลบรูป / รีเซ็ต</span>
+                    </button>
+                  )}
+                </div>
 
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-700 p-2 flex items-center justify-center shrink-0">
-                    {iconUrl ? (
-                      <img src={iconUrl} alt="Preview" className="w-10 h-10 object-contain" />
-                    ) : (
-                      <ImageIcon className="w-6 h-6 text-neutral-400" />
-                    )}
+                {/* Live Card Simulation Preview */}
+                <div className="p-3 bg-slate-50/90 dark:bg-neutral-900/90 rounded-2xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700/80 p-2.5 flex items-center justify-center shrink-0 shadow-xs relative group overflow-hidden">
+                      {iconUrl && !imgError ? (
+                        <img
+                          src={iconUrl}
+                          alt="Icon Preview"
+                          className="w-9 h-9 object-contain transition-transform group-hover:scale-110"
+                          onError={() => setImgError(true)}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-neutral-400">
+                          {imgError ? (
+                            <AlertCircle className="w-6 h-6 text-amber-500" />
+                          ) : (
+                            <ImageIcon className="w-6 h-6" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-neutral-800 dark:text-white truncate">
+                        {title || 'ชื่อบริการตัวอย่าง'}
+                      </div>
+                      <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
+                        {categories.find((c) => c.id === categoryId)?.name || 'หมวดหมู่บริการ'}
+                      </div>
+                      <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 mt-0.5">
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span>ตัวอย่างแสดงผลจริงบนหน้าระบบ (Live Preview)</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex-1 space-y-1">
+                  {imgError && (
+                    <span className="px-2 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] font-medium shrink-0">
+                      ⚠️ โหลดรูปไม่สำเร็จ
+                    </span>
+                  )}
+                </div>
+
+                {/* Mode Selector Tabs */}
+                <div className="flex rounded-xl p-1 bg-slate-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setLogoMode('upload')}
+                    className={`flex-1 py-1.5 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
+                      logoMode === 'upload'
+                        ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-xs'
+                        : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
+                    }`}
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>อัปโหลดไฟล์รูปภาพ</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLogoMode('presets')}
+                    className={`flex-1 py-1.5 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
+                      logoMode === 'presets'
+                        ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-xs'
+                        : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>ไอคอนมาตรฐาน ({PRESET_ICONS.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLogoMode('url')}
+                    className={`flex-1 py-1.5 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
+                      logoMode === 'url'
+                        ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-xs'
+                        : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
+                    }`}
+                  >
+                    <Link2 className="w-3.5 h-3.5" />
+                    <span>ระบุ URL ตรง</span>
+                  </button>
+                </div>
+
+                {/* Tab 1: Drag & Drop File Upload */}
+                {logoMode === 'upload' && (
+                  <div>
                     <input
                       type="file"
                       ref={fileInputRef}
-                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif,image/x-icon"
                       className="hidden"
                       onChange={handleFileUpload}
                     />
-                    <button
-                      type="button"
+                    <div
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
                       onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                      className="px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700 flex items-center gap-1.5 shadow-sm"
+                      className={`w-full p-5 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+                        isDragging
+                          ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 scale-[0.99]'
+                          : 'border-neutral-300 dark:border-neutral-700 hover:border-blue-500 hover:bg-slate-50/50 dark:hover:bg-neutral-900/50'
+                      }`}
                     >
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>{uploading ? 'กำลังอัปโหลด...' : 'อัปโหลดรูปภาพ / SVG'}</span>
-                    </button>
+                      {uploading ? (
+                        <div className="flex flex-col items-center gap-2 py-2">
+                          <RefreshCw className="w-7 h-7 text-blue-600 animate-spin" />
+                          <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                            กำลังอัปโหลดและประมวลผลรูปภาพ...
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center mb-2 shadow-xs">
+                            <Upload className="w-5 h-5" />
+                          </div>
+                          <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                            ลากและวางไฟล์รูปภาพที่นี่ หรือคลิกเพื่อเลือกไฟล์
+                          </span>
+                          <span className="text-[11px] text-neutral-400 mt-1">
+                            รองรับไฟล์ PNG, SVG, WebP, JPG, ICO (แนะนำ 1:1 พื้นหลังโปร่งใส ไม่เกิน 5MB)
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 2: Categorized Preset Icons Catalog */}
+                {logoMode === 'presets' && (
+                  <div className="space-y-2.5 p-3 bg-slate-50 dark:bg-neutral-900/70 rounded-2xl border border-neutral-200 dark:border-neutral-800">
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                      {/* Search in presets */}
+                      <div className="relative w-full sm:flex-1">
+                        <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={iconSearch}
+                          onChange={(e) => setIconSearch(e.target.value)}
+                          placeholder="ค้นหาไอคอน (เช่น Google, Plan, RCMS, AI)..."
+                          className="w-full pl-8 pr-3 py-1.5 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        {iconSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setIconSearch('')}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Category Filter Pills */}
+                      <div className="flex items-center gap-1 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                        {[
+                          { id: 'all', label: 'ทั้งหมด' },
+                          { id: 'cric', label: 'วิทยาลัย' },
+                          { id: 'google', label: 'Google' },
+                          { id: 'tools', label: 'AI & เครื่องมือ' },
+                        ].map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setIconCategory(cat.id as any)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition ${
+                              iconCategory === cat.id
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                            }`}
+                          >
+                            {cat.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Presets Grid */}
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-44 overflow-y-auto pr-1">
+                      {PRESET_ICONS.filter((item) => {
+                        const matchCat = iconCategory === 'all' || item.category === iconCategory;
+                        const matchSearch =
+                          !iconSearch ||
+                          item.label.toLowerCase().includes(iconSearch.toLowerCase());
+                        return matchCat && matchSearch;
+                      }).map((preset) => {
+                        const isSelected = iconUrl === preset.url;
+                        return (
+                          <button
+                            type="button"
+                            key={preset.label}
+                            onClick={() => {
+                              setIconUrl(preset.url);
+                              setImgError(false);
+                            }}
+                            className={`p-2 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all text-center relative group ${
+                              isSelected
+                                ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500 scale-[1.03] shadow-xs'
+                                : 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700/60 hover:border-neutral-400 dark:hover:border-neutral-500 hover:scale-[1.02]'
+                            }`}
+                            title={preset.label}
+                          >
+                            <img
+                              src={preset.url}
+                              alt={preset.label}
+                              className="w-7 h-7 object-contain drop-shadow-xs"
+                            />
+                            <span className="text-[10px] text-neutral-700 dark:text-neutral-300 font-medium truncate w-full px-0.5">
+                              {preset.label}
+                            </span>
+                            {preset.badge && (
+                              <span className="absolute top-1 right-1 px-1 py-0.2 rounded text-[8px] font-bold bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                                {preset.badge}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 3: Direct URL Input */}
+                {logoMode === 'url' && (
+                  <div className="space-y-2 p-3 bg-slate-50 dark:bg-neutral-900/70 rounded-2xl border border-neutral-200 dark:border-neutral-800">
+                    <label className="block text-[11px] font-medium text-neutral-600 dark:text-neutral-400">
+                      กรอกหรือวางลิงก์ URL ของรูปภาพโดยตรง:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Link2 className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="url"
+                          value={iconUrl}
+                          onChange={(e) => {
+                            setIconUrl(e.target.value);
+                            setImgError(false);
+                          }}
+                          placeholder="https://... หรือ /uploads/..."
+                          className="w-full pl-9 pr-3 py-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-xs font-mono text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                      {iconUrl && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIconUrl('');
+                            setImgError(false);
+                          }}
+                          className="px-2.5 py-2 rounded-xl text-xs bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 transition"
+                        >
+                          ล้างค่า
+                        </button>
+                      )}
+                    </div>
                     <p className="text-[11px] text-neutral-500">
-                      หรือเลือกจากชุดไอคอนมาตรฐานด้านล่าง:
+                      💡 แนะนำ: ใช้ลิงก์ภาพที่มี HTTPS และพื้นหลังโปร่งใส (Transparent PNG หรือ SVG) เพื่อความสวยงามทั้งในธีมสว่างและมืด
                     </p>
                   </div>
-                </div>
-
-                {/* Preset Icons Carousel / Grid */}
-                <div className="grid grid-cols-6 gap-2 p-2 bg-slate-50 dark:bg-neutral-900/80 rounded-2xl border border-neutral-200 dark:border-neutral-800 max-h-36 overflow-y-auto">
-                  {PRESET_ICONS.map((preset) => (
-                    <button
-                      type="button"
-                      key={preset.label}
-                      onClick={() => setIconUrl(preset.url)}
-                      className={`p-1.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
-                        iconUrl === preset.url
-                          ? 'bg-blue-600/20 border border-blue-500 scale-105 shadow-sm'
-                          : 'hover:bg-neutral-200/60 dark:hover:bg-neutral-800 border border-transparent'
-                      }`}
-                      title={preset.label}
-                    >
-                      <img src={preset.url} alt={preset.label} className="w-6 h-6 object-contain" />
-                    </button>
-                  ))}
-                </div>
+                )}
               </div>
 
               {/* Role Permissions (RBAC) */}

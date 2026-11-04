@@ -22,7 +22,35 @@ export async function POST(req: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { success: false, error: 'No file uploaded' },
+        { success: false, error: 'กรุณาเลือกไฟล์รูปภาพที่ต้องการอัปโหลด' },
+        { status: 400 }
+      );
+    }
+
+    // Validate File Size (Max 5MB)
+    const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+    if (file.size > MAX_SIZE_BYTES) {
+      return NextResponse.json(
+        { success: false, error: 'ขนาดไฟล์เกินกำหนด (สูงสุดไม่เกิน 5MB)' },
+        { status: 400 }
+      );
+    }
+
+    // Validate Allowed File Types
+    const ALLOWED_MIME_TYPES = [
+      'image/png',
+      'image/jpeg',
+      'image/jpg',
+      'image/svg+xml',
+      'image/webp',
+      'image/gif',
+      'image/x-icon',
+      'image/vnd.microsoft.icon',
+    ];
+
+    if (!ALLOWED_MIME_TYPES.includes(file.type.toLowerCase())) {
+      return NextResponse.json(
+        { success: false, error: 'ประเภทไฟล์ไม่รองรับ รองรับเฉพาะ PNG, JPG, WebP, SVG, GIF และ ICO เท่านั้น' },
         { status: 400 }
       );
     }
@@ -31,8 +59,12 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Sanitize filename
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const filename = `${Date.now()}-${originalName}`;
+    const originalExt = path.extname(file.name).toLowerCase() || '.png';
+    const cleanBaseName = path
+      .basename(file.name, originalExt)
+      .replace(/[^a-zA-Z0-9_-]/g, '_')
+      .substring(0, 40);
+    const filename = `${Date.now()}-${cleanBaseName}${originalExt}`;
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
 
     let fileUrl = `/uploads/${filename}`;
