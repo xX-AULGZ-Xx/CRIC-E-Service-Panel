@@ -114,12 +114,11 @@ export async function GET(req: NextRequest) {
       }, { headers: corsHeaders });
     }
 
-    // Filter active services:
-    // When queried from the 9-dots launcher, show all active CRIC services as an app directory.
-    // Otherwise in portal view, check RBAC permissions.
+    // Filter active services based on RBAC permissions:
+    // When user is unauthenticated or guest, only public services (allowedRoles includes 'guest' or empty) are returned.
+    // When authenticated (student, teacher, staff, admin), services permitted for their role are returned.
     const visibleServices = enriched.filter((service) => {
       if (!service.isActive) return false;
-      if (isLauncherMode) return true;
       return isUserAuthorizedForService([filterRole], service.allowedRoles);
     });
 

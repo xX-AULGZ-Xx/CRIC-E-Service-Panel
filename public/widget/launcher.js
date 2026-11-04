@@ -394,8 +394,62 @@
 
   let isOpen = false;
   let servicesLoaded = false;
-  const SERVICES_CACHE_KEY = 'cric_services_cache';
   const SERVICES_CACHE_TTL = 60 * 1000; // 60s SWR window
+
+  function detectCurrentRole() {
+    try {
+      // 1. Check cric_active_role cookie
+      const roleMatch = document.cookie.match(/(?:^|;\s*)cric_active_role=([^;]+)/);
+      if (roleMatch && roleMatch[1]) {
+        return decodeURIComponent(roleMatch[1]);
+      }
+
+      // 2. Check cric_user_profile cookie
+      const profileMatch = document.cookie.match(/(?:^|;\s*)cric_user_profile=([^;]+)/);
+      if (profileMatch && profileMatch[1]) {
+        const parsed = JSON.parse(decodeURIComponent(profileMatch[1]));
+        if (parsed.currentRole) return parsed.currentRole;
+        if (parsed.role) return parsed.role;
+      }
+
+      // 3. Check local storage of subsystem (Plan: vps_user, RCMS: user)
+      const vpsUserStr = localStorage.getItem('vps_user');
+      if (vpsUserStr) {
+        const u = JSON.parse(vpsUserStr);
+        if (u.role) return u.role;
+      }
+
+      const rcmsUserStr = localStorage.getItem('user');
+      if (rcmsUserStr) {
+        const u = JSON.parse(rcmsUserStr);
+        if (u.role) return u.role;
+      }
+
+      // 4. Check central login cookie
+      const isLoggedIn = document.cookie.includes('cric_logged_in=true');
+      if (!isLoggedIn) {
+        return 'guest';
+      }
+    } catch (e) {}
+
+    return 'guest';
+  }
+
+  function getServicesCacheKey() {
+    const role = detectCurrentRole();
+    return `cric_services_cache_${role}`;
+  }
+
+  function clearAllServicesCache() {
+    try {
+      const keys = Object.keys(sessionStorage);
+      for (const k of keys) {
+        if (k.startsWith('cric_services_cache_') || k === 'cric_services_cache') {
+          sessionStorage.removeItem(k);
+        }
+      }
+    } catch (e) {}
+  }
 
   function renderServicesHtml(services) {
     if (!Array.isArray(services) || services.length === 0) {
@@ -409,7 +463,7 @@
       .map(
         (srv) => `
         <a href="${srv.url}" target="${srv.openInNewTab ? '_blank' : '_self'}" class="cric-widget-item" title="${srv.title}">
-          <img src="${srv.iconUrl && srv.iconUrl.startsWith('/') ? PORTAL_URL + srv.iconUrl : (srv.iconUrl || '')}" alt="${srv.title}" />
+          <img src="${srv.iconUrl && srv.iconUrl.startsWith('/') ? PORTAL_URL + srv.iconUrl : (srv.iconUrl || '')}" alt="" onerror="this.style.display='none'; if(this.parentElement && !this.parentElement.querySelector('span.fallback-icon')) { const fb = document.createElement('span'); fb.className='fallback-icon'; fb.style.fontSize='24px'; fb.style.display='block'; fb.innerHTML='🌐'; this.parentElement.insertBefore(fb, this); }" />
           <span>${srv.title}</span>
         </a>
       `
@@ -419,7 +473,8 @@
 
   function getCachedServices() {
     try {
-      const cached = sessionStorage.getItem(SERVICES_CACHE_KEY);
+      const key = getServicesCacheKey();
+      const cached = sessionStorage.getItem(key);
       if (cached) {
         return JSON.parse(cached);
       }
@@ -429,8 +484,9 @@
 
   function setCachedServices(data) {
     try {
+      const key = getServicesCacheKey();
       sessionStorage.setItem(
-        SERVICES_CACHE_KEY,
+        key,
         JSON.stringify({ timestamp: Date.now(), data })
       );
     } catch (e) {}
@@ -439,6 +495,8 @@
   async function loadServices(forceRefresh = false) {
     const grid = document.getElementById('cric-widget-grid');
     if (!grid) return;
+
+    const currentRole = detectCurrentRole();
 
     // Fast-path: Render from cache instantly (0ms)
     const cached = getCachedServices();
@@ -453,9 +511,11 @@
     }
 
     try {
-      // Fetch CRIC Services without ambient credentials to prevent wildcard CORS rejections
-      const res = await fetch(`${PORTAL_URL}/api/v1/services?launcher=true`, {
+      // Fetch CRIC Services with credentials and current role to enforce RBAC
+      const url = `${PORTAL_URL}/api/v1/services?launcher=true&role=${encodeURIComponent(currentRole)}`;
+      const res = await fetch(url, {
         mode: 'cors',
+        credentials: 'include',
       });
       const data = await res.json();
       if (!grid) return;
@@ -505,7 +565,7 @@
     btn.classList.toggle('active', isOpen);
     popover.classList.toggle('open', isOpen);
 
-    if (isOpen && !servicesLoaded) {
+    if (isOpen) {
       loadServices();
     }
   });
@@ -667,6 +727,20 @@
       getPortalUrl: () => PORTAL_URL,
     };
   }
+
+  // Clear services cache on authentication/session events so 9-dot refreshes immediately
+  window.addEventListener('cric:sso:login', () => {
+    servicesLoaded = false;
+    clearAllServicesCache();
+  });
+  window.addEventListener('cric:sso:logout', () => {
+    servicesLoaded = false;
+    clearAllServicesCache();
+  });
+  window.addEventListener('user-updated', () => {
+    servicesLoaded = false;
+    clearAllServicesCache();
+  });
 
   // Initialize SSO Agent automatically
   initUniversalSsoAgent();

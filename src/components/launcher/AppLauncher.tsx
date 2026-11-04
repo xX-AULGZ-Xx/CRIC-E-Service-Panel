@@ -42,7 +42,7 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
 
   useEffect(() => {
     fetchServices();
-  }, [currentRole]);
+  }, [currentRole, isOpen]);
 
   // Close on outside click
   useEffect(() => {
