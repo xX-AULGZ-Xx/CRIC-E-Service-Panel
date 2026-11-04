@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import MaintenanceScreen from '@/components/portal/MaintenanceScreen';
+import ServiceIcon from '@/components/portal/ServiceIcon';
 import { ServiceItem, UserSession, SystemSetting } from '@/types/service';
 import { 
   Star, 
@@ -208,12 +209,8 @@ export default function PortalDashboard() {
                   rel="noreferrer"
                   className="group flex flex-col items-center p-3 rounded-2xl bg-white dark:bg-neutral-900/70 border border-neutral-200 dark:border-neutral-800 hover:border-blue-400 dark:hover:border-neutral-700 hover:bg-slate-50 dark:hover:bg-neutral-850 hover:shadow-md transition-all duration-200 text-center select-none shadow-sm"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800/80 p-2 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                    {srv.iconUrl ? (
-                      <img src={srv.iconUrl} alt={srv.title} className="w-8 h-8 object-contain" />
-                    ) : (
-                      <Globe className="w-5 h-5 text-neutral-400" />
-                    )}
+                  <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800/80 p-2 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform overflow-hidden">
+                    <ServiceIcon src={srv.iconUrl} className="w-8 h-8 object-contain" />
                   </div>
                   <span className="text-xs font-medium text-neutral-700 dark:text-neutral-200 group-hover:text-neutral-950 dark:group-hover:text-white line-clamp-1">
                     {srv.title}
@@ -315,16 +312,8 @@ export default function PortalDashboard() {
                   <div>
                     {/* Header: Icon, Favorite Star, Category */}
                     <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-neutral-800/90 border border-slate-200 dark:border-neutral-700/60 p-2.5 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        {service.iconUrl ? (
-                          <img
-                            src={service.iconUrl}
-                            alt={service.title}
-                            className="w-9 h-9 object-contain"
-                          />
-                        ) : (
-                          <Globe className="w-6 h-6 text-neutral-400" />
-                        )}
+                      <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-neutral-800/90 border border-slate-200 dark:border-neutral-700/60 p-2.5 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform overflow-hidden">
+                        <ServiceIcon src={service.iconUrl} className="w-9 h-9 object-contain" fallbackIconSizeClass="w-6 h-6 text-neutral-400" />
                       </div>
 
                       <div className="flex items-center gap-1.5">

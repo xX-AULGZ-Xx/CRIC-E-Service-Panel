@@ -282,11 +282,21 @@ function ServiceLauncherItem({
         {service.iconUrl ? (
           <img
             src={service.iconUrl}
-            alt={service.title}
+            alt=""
             className="w-10 h-10 object-contain drop-shadow-sm"
             onError={(e) => {
-              (e.target as HTMLElement).style.display = 'none';
-              (e.target as HTMLElement).parentElement!.classList.add('bg-neutral-100', 'dark:bg-neutral-800');
+              const el = e.target as HTMLElement;
+              el.style.display = 'none';
+              const parent = el.parentElement;
+              if (parent) {
+                parent.classList.add('bg-neutral-100', 'dark:bg-neutral-800');
+                if (!parent.querySelector('svg')) {
+                  const fallback = document.createElement('span');
+                  fallback.innerHTML = '🌐';
+                  fallback.className = 'text-xl select-none';
+                  parent.appendChild(fallback);
+                }
+              }
             }}
           />
         ) : (

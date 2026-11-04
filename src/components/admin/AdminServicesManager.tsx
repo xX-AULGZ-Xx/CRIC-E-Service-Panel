@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
+import ServiceIcon from '@/components/portal/ServiceIcon';
 import { ServiceItem, CategoryItem, UserRole } from '@/types/service';
 import { 
   Plus, 
@@ -389,12 +389,8 @@ export default function AdminServicesManager() {
                   {/* Service Name & Icon */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700/60 p-1 flex items-center justify-center shrink-0">
-                        {srv.iconUrl ? (
-                          <img src={srv.iconUrl} alt={srv.title} className="w-8 h-8 object-contain" />
-                        ) : (
-                          <Globe className="w-5 h-5 text-neutral-400" />
-                        )}
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700/60 p-1 flex items-center justify-center shrink-0 overflow-hidden">
+                        <ServiceIcon src={srv.iconUrl} className="w-8 h-8 object-contain" />
                       </div>
                       <div>
                         <div className="font-medium text-neutral-900 dark:text-white flex items-center gap-1.5">

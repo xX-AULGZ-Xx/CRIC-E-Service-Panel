@@ -67,18 +67,20 @@ export async function POST(req: NextRequest) {
     const filename = `${Date.now()}-${cleanBaseName}${originalExt}`;
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
 
-    let fileUrl = `/uploads/${filename}`;
-
+    // Attempt to write file to disk as archive
     try {
       await mkdir(uploadDir, { recursive: true });
       const filePath = path.join(uploadDir, filename);
       await writeFile(filePath, buffer);
     } catch (diskErr: any) {
-      console.warn('Disk upload write failed, using base64 data url fallback:', diskErr.message);
-      // Fallback to base64 Data URL so the logo always works even if file permissions fail
-      const mime = file.type || 'image/png';
-      fileUrl = `data:${mime};base64,${buffer.toString('base64')}`;
+      console.warn('Disk upload write warning:', diskErr.message);
     }
+
+    // For service icons and logos (<= 2MB), Base64 Data URL guarantees
+    // 100% reliable rendering without any risk of 404, container restarts, or CORS issues.
+    const mime = file.type || 'image/png';
+    const base64Url = `data:${mime};base64,${buffer.toString('base64')}`;
+    const fileUrl = buffer.length <= 2 * 1024 * 1024 ? base64Url : `/uploads/${filename}`;
 
     return NextResponse.json({
       success: true,
