@@ -177,6 +177,7 @@
     "iconUrl": "https://cdn-icons-png.flaticon.com/512/3145/3145765.png",
     "categoryId": "cat-academic",
     "allowedRoles": [
+      "guest",
       "student",
       "teacher",
       "staff",
@@ -206,6 +207,7 @@
     "iconUrl": "https://cdn-icons-png.flaticon.com/512/4233/4233830.png",
     "categoryId": "cat-tools-it",
     "allowedRoles": [
+      "guest",
       "student",
       "teacher",
       "staff",
