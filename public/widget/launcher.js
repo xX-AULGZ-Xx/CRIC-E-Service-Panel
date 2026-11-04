@@ -155,6 +155,18 @@
     .cric-widget-popover.open {
       display: flex;
     }
+    @media (max-width: 640px) {
+      .cric-widget-popover {
+        position: fixed !important;
+        top: 60px !important;
+        left: 14px !important;
+        right: 14px !important;
+        width: auto !important;
+        max-width: 360px !important;
+        margin: 0 auto !important;
+        max-height: 75vh !important;
+      }
+    }
     @keyframes cric-scale-in {
       from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
