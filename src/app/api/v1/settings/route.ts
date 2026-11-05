@@ -29,6 +29,13 @@ const DEFAULT_SETTINGS = {
   googleClientId: null,
   googleClientSecret: null,
   googleHostedDomain: 'cric.ac.th',
+
+  // Keycloak Central SSO Integration
+  keycloakPublicUrl: 'https://sso.cric.ac.th',
+  keycloakInternalUrl: 'http://keycloak:8080',
+  keycloakClientId: 'cric-portal',
+  keycloakClientSecret: null,
+  centralGatewayEnabled: true,
 };
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -115,6 +122,13 @@ export async function PUT(req: NextRequest) {
       googleClientId: body.googleClientId !== undefined ? body.googleClientId?.trim() || null : undefined,
       googleClientSecret: body.googleClientSecret !== undefined ? body.googleClientSecret?.trim() || null : undefined,
       googleHostedDomain: body.googleHostedDomain !== undefined ? body.googleHostedDomain?.trim() || null : undefined,
+
+      // Keycloak Central SSO Integration
+      keycloakPublicUrl: body.keycloakPublicUrl !== undefined ? body.keycloakPublicUrl?.trim() || null : undefined,
+      keycloakInternalUrl: body.keycloakInternalUrl !== undefined ? body.keycloakInternalUrl?.trim() || null : undefined,
+      keycloakClientId: body.keycloakClientId !== undefined ? body.keycloakClientId?.trim() || null : undefined,
+      keycloakClientSecret: body.keycloakClientSecret !== undefined ? body.keycloakClientSecret?.trim() || null : undefined,
+      centralGatewayEnabled: body.centralGatewayEnabled !== undefined ? Boolean(body.centralGatewayEnabled) : undefined,
     };
 
     try {

@@ -77,6 +77,13 @@ model SystemSetting {
   googleClientSecret        String?
   googleHostedDomain        String?  @default("cric.ac.th")
 
+  // Keycloak Central SSO Integration
+  keycloakPublicUrl         String?  @default("https://sso.cric.ac.th")
+  keycloakInternalUrl       String?  @default("http://keycloak:8080")
+  keycloakClientId          String?  @default("cric-portal")
+  keycloakClientSecret      String?
+  centralGatewayEnabled     Boolean  @default(true)
+
   updatedAt                 DateTime @updatedAt
 
   @@map("system_settings")

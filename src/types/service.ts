@@ -65,6 +65,13 @@ export interface SystemSetting {
   googleClientSecret?: string | null;
   googleHostedDomain?: string | null;
 
+  // Keycloak Central SSO Integration
+  keycloakPublicUrl?: string | null;
+  keycloakInternalUrl?: string | null;
+  keycloakClientId?: string | null;
+  keycloakClientSecret?: string | null;
+  centralGatewayEnabled?: boolean;
+
   updatedAt?: string | Date;
 }
 

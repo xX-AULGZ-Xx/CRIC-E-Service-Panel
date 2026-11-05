@@ -26,15 +26,49 @@ export default function AdminSettingsManager() {
   const [settings, setSettings] = useState<SystemSetting | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'branding' | 'behavior' | 'google' | 'security'>('branding');
+  const [activeTab, setActiveTab] = useState<'branding' | 'behavior' | 'google' | 'sso' | 'security'>('branding');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
-  // Google OAuth helpers
+  // Google OAuth & Keycloak SSO helpers
   const [showClientSecret, setShowClientSecret] = useState(false);
+  const [showKeycloakSecret, setShowKeycloakSecret] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [testingKeycloak, setTestingKeycloak] = useState(false);
+  const [keycloakTestResult, setKeycloakTestResult] = useState<{
+    success: boolean;
+    message: string;
+    latencyMs?: number;
+    statusCode?: number;
+    issuer?: string;
+    discoveryUrl?: string;
+  } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleTestKeycloak = async () => {
+    setTestingKeycloak(true);
+    setKeycloakTestResult(null);
+    try {
+      const res = await fetch('/api/v1/sso/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: settings?.keycloakPublicUrl,
+          realm: settings?.keycloakRealm,
+        }),
+      });
+      const data = await res.json();
+      setKeycloakTestResult(data);
+    } catch (err: any) {
+      setKeycloakTestResult({
+        success: false,
+        message: 'เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + (err.message || 'Network error'),
+      });
+    } finally {
+      setTestingKeycloak(false);
+    }
+  };
 
   const loadSettings = async () => {
     setLoading(true);
@@ -197,6 +231,21 @@ export default function AdminSettingsManager() {
         </button>
 
         <button
+          onClick={() => setActiveTab('sso')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
+            activeTab === 'sso'
+              ? 'bg-blue-600 text-white font-semibold shadow-sm'
+              : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-850'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <span>Central SSO & Keycloak</span>
+          {settings.centralGatewayEnabled !== false && (
+            <span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveTab('security')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
             activeTab === 'security'
@@ -204,8 +253,8 @@ export default function AdminSettingsManager() {
               : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-850'
           }`}
         >
-          <ShieldCheck className="w-4 h-4" />
-          <span>ความปลอดภัย & SSO Keycloak</span>
+          <Lock className="w-4 h-4" />
+          <span>ความปลอดภัย & นโยบาย Session</span>
         </button>
       </div>
 
@@ -701,7 +750,233 @@ export default function AdminSettingsManager() {
           </div>
         )}
 
-        {/* Tab 3: Security & Keycloak SSO */}
+        {/* Tab: Central SSO & Keycloak */}
+        {activeTab === 'sso' && (
+          <div className="space-y-6 animate-in fade-in">
+            {/* 1. Gateway Status & Toggle */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
+                <div>
+                  <h3 className="text-base font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                    <span>Central Login Gateway & Single Sign-On (SSO)</span>
+                  </h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    ทำหน้าที่เป็นศูนย์กลางการยืนยันตัวตนสำหรับระบบลูกทั้งหมดของวิทยาลัย (Single Sign-On / Single Sign-Out)
+                  </p>
+                </div>
+
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                    {settings.centralGatewayEnabled !== false ? 'เปิดใช้งาน Gateway' : 'ปิดใช้งาน'}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={settings.centralGatewayEnabled !== false}
+                    onChange={(e) => handleChange('centralGatewayEnabled', e.target.checked)}
+                    className="w-5 h-5 rounded text-blue-600 bg-neutral-100 dark:bg-neutral-900 border-neutral-300 dark:border-neutral-700 cursor-pointer"
+                  />
+                </label>
+              </div>
+
+              {/* Server URLs Configuration */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                    Keycloak Public URL (URL ภายนอกสำหรับเบราว์เซอร์)
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.keycloakPublicUrl || 'https://sso.cric.ac.th'}
+                    onChange={(e) => handleChange('keycloakPublicUrl', e.target.value)}
+                    placeholder="https://sso.cric.ac.th"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-black transition-all"
+                  />
+                  <p className="text-[11px] text-neutral-500 mt-1">
+                    URL ที่ผู้ใช้และระบบลูกเรียกใช้ เช่น <code>https://sso.cric.ac.th</code>
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                    Keycloak Internal URL (Docker Internal Network)
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.keycloakInternalUrl || 'http://keycloak:8080'}
+                    onChange={(e) => handleChange('keycloakInternalUrl', e.target.value)}
+                    placeholder="http://keycloak:8080"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-black transition-all"
+                  />
+                  <p className="text-[11px] text-neutral-500 mt-1">
+                    URL เชื่อมต่อตรงภายในเซิร์ฟเวอร์ เช่น <code>http://keycloak:8080</code>
+                  </p>
+                </div>
+              </div>
+
+              {/* Realm & Client Configuration */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                    Keycloak Realm
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.keycloakRealm || 'cric-college'}
+                    onChange={(e) => handleChange('keycloakRealm', e.target.value)}
+                    placeholder="cric-college"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-black transition-all"
+                  />
+                  <p className="text-[11px] text-neutral-500 mt-1">
+                    เช่น <code>cric-college</code>
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                    Portal Client ID
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.keycloakClientId || 'cric-portal'}
+                    onChange={(e) => handleChange('keycloakClientId', e.target.value)}
+                    placeholder="cric-portal"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-black transition-all"
+                  />
+                  <p className="text-[11px] text-neutral-500 mt-1">
+                    รหัส Client ของ Portal ใน Keycloak
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                    Portal Client Secret (ถ้ามี)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showKeycloakSecret ? 'text' : 'password'}
+                      value={settings.keycloakClientSecret || ''}
+                      onChange={(e) => handleChange('keycloakClientSecret', e.target.value)}
+                      placeholder="••••••••••••••••"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-black transition-all pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowKeycloakSecret(!showKeycloakSecret)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                    >
+                      {showKeycloakSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-neutral-500 mt-1">
+                    สำหรับ Confidential Client
+                  </p>
+                </div>
+              </div>
+
+              {/* Test Connection Button */}
+              <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={handleTestKeycloak}
+                  disabled={testingKeycloak}
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs sm:text-sm font-semibold shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${testingKeycloak ? 'animate-spin' : ''}`} />
+                  <span>{testingKeycloak ? 'กำลังทดสอบการเชื่อมต่อ...' : 'ทดสอบการเชื่อมต่อ Keycloak IdP (Health Check)'}</span>
+                </button>
+
+                <div className="text-[11px] text-neutral-500">
+                  ทดสอบยิง Request ไปยัง OIDC Discovery Endpoint เพื่อยืนยันสถานะเซิร์ฟเวอร์
+                </div>
+              </div>
+
+              {/* Test Result Display */}
+              {keycloakTestResult && (
+                <div
+                  className={`p-4 rounded-2xl text-xs sm:text-sm border animate-in fade-in space-y-2 ${
+                    keycloakTestResult.success
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200'
+                      : 'bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between font-bold">
+                    <span className="flex items-center gap-1.5">
+                      {keycloakTestResult.success ? <Check className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-rose-600" />}
+                      <span>{keycloakTestResult.message}</span>
+                    </span>
+                    {keycloakTestResult.latencyMs !== undefined && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-200 dark:bg-neutral-800 font-mono">
+                        Latency: {keycloakTestResult.latencyMs} ms
+                      </span>
+                    )}
+                  </div>
+
+                  {keycloakTestResult.discoveryUrl && (
+                    <div className="text-[11px] font-mono break-all opacity-85">
+                      Endpoint: {keycloakTestResult.discoveryUrl}
+                    </div>
+                  )}
+
+                  {keycloakTestResult.issuer && (
+                    <div className="text-[11px] font-mono opacity-85">
+                      Issuer: {keycloakTestResult.issuer}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 2. Registered Client Applications Card */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
+                <div>
+                  <h3 className="text-base font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-indigo-500" />
+                    <span>ระบบลูกที่เชื่อมต่อ (Registered Sub-systems)</span>
+                  </h3>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                    รายชื่อระบบลูกที่ลงทะเบียนใช้งาน Single Sign-On ร่วมกับ Portal
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Plan App */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm text-neutral-900 dark:text-white">ระบบแผนงานและงบประมาณ (Plan)</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                      Active
+                    </span>
+                  </div>
+                  <div className="text-xs text-neutral-500 space-y-1">
+                    <div>Client ID: <code className="font-mono text-neutral-800 dark:text-neutral-200">cric-plan-app</code></div>
+                    <div>Root URL: <code className="font-mono text-blue-600 dark:text-blue-400">https://plan.cric.ac.th</code></div>
+                    <div>Redirect URI: <code className="font-mono text-[11px]">https://plan.cric.ac.th/auth/callback</code></div>
+                  </div>
+                </div>
+
+                {/* RCMS App */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm text-neutral-900 dark:text-white">ระบบลงทะเบียนและเกียรติบัตร (RCMS)</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                      Active
+                    </span>
+                  </div>
+                  <div className="text-xs text-neutral-500 space-y-1">
+                    <div>Client ID: <code className="font-mono text-neutral-800 dark:text-neutral-200">cric-rcms-app</code></div>
+                    <div>Root URL: <code className="font-mono text-blue-600 dark:text-blue-400">https://rcms.cric.ac.th</code></div>
+                    <div>Redirect URI: <code className="font-mono text-[11px]">https://rcms.cric.ac.th/auth/callback</code></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Security & Session Policies */}
         {activeTab === 'security' && (
           <div className="space-y-6 animate-in fade-in">
             <div className="p-6 rounded-3xl bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 space-y-4 shadow-sm">

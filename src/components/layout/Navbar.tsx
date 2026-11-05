@@ -137,23 +137,23 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
     <header className="sticky top-0 z-40 w-full border-b border-neutral-200 dark:border-neutral-800 bg-white/90 dark:bg-[#121314]/90 backdrop-blur-md px-4 lg:px-8 py-3 transition-colors duration-200">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Brand / Logo */}
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3 group">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
             {settings?.logoUrl ? (
               <img
                 src={settings.logoUrl}
                 alt="Logo"
-                className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-200"
+                className="w-9 h-9 sm:w-10 sm:h-10 object-contain group-hover:scale-105 transition-transform duration-200"
               />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
-                <span className="font-bold text-white text-lg tracking-wider">C</span>
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
+                <span className="font-bold text-white text-base sm:text-lg tracking-wider">C</span>
               </div>
             )}
             <div>
-              <div className="font-semibold text-neutral-900 dark:text-white tracking-tight text-[15px] flex items-center gap-1.5">
+              <div className="font-semibold text-neutral-900 dark:text-white tracking-tight text-xs sm:text-[15px] flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
                 <span>{settings?.portalTitle || 'CRIC E-Service'}</span>
-                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/15 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/15 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">
                   Panel
                 </span>
               </div>

@@ -27,6 +27,13 @@ export interface SystemSettingsData {
   googleClientId: string | null;
   googleClientSecret: string | null;
   googleHostedDomain: string | null;
+
+  // Keycloak Central SSO Integration
+  keycloakPublicUrl: string | null;
+  keycloakInternalUrl: string | null;
+  keycloakClientId: string | null;
+  keycloakClientSecret: string | null;
+  centralGatewayEnabled: boolean;
 }
 
 export const DEFAULT_SETTINGS: SystemSettingsData = {
@@ -54,6 +61,13 @@ export const DEFAULT_SETTINGS: SystemSettingsData = {
   googleClientId: null,
   googleClientSecret: null,
   googleHostedDomain: 'cric.ac.th',
+
+  // Keycloak Central SSO Integration
+  keycloakPublicUrl: 'https://sso.cric.ac.th',
+  keycloakInternalUrl: 'http://keycloak:8080',
+  keycloakClientId: 'cric-portal',
+  keycloakClientSecret: null,
+  centralGatewayEnabled: true,
 };
 
 export function isEnvDemoModeDisabled(): boolean {

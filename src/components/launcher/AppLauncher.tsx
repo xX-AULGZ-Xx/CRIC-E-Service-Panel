@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ServiceItem } from '@/types/service';
 import { 
   Grip, 
@@ -24,7 +25,31 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
   const [isEditMode, setIsEditMode] = useState(false);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const updatePosition = () => {
+    if (typeof window !== 'undefined') {
+      setIsMobile(window.innerWidth < 640);
+      if (buttonRef.current) {
+        setButtonRect(buttonRef.current.getBoundingClientRect());
+      }
+    }
+  };
+
+  useEffect(() => {
+    setMounted(true);
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, []);
 
   const fetchServices = async () => {
     try {
@@ -47,7 +72,12 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
   // Close on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current && 
+        !containerRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setIsEditMode(false);
       }
@@ -86,11 +116,20 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
 
   const otherServices = services.filter((s) => !s.isFavorite);
 
+  const handleToggle = () => {
+    updatePosition();
+    setIsOpen(!isOpen);
+    if (isOpen) {
+      setIsEditMode(false);
+    }
+  };
+
   return (
     <div className="relative inline-block" ref={containerRef}>
       {/* 9-Dots Google Style Icon Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        ref={buttonRef}
+        onClick={handleToggle}
         title="CRIC E-Service Launcher"
         aria-label="CRIC E-Service Launcher"
         className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
@@ -102,49 +141,66 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
         <Grip className="w-5 h-5" />
       </button>
 
-      {/* Google-Style Popover Menu */}
-      {isOpen && (
+      {/* Google-Style Popover Menu rendered via Portal into body to escape backdrop-filter & overflow clipping */}
+      {isOpen && mounted && createPortal(
         <div
-          className="fixed left-3 right-3 sm:left-auto sm:right-0 sm:absolute top-[68px] sm:top-full mt-1 sm:mt-3 w-auto sm:w-[360px] max-w-[360px] mx-auto sm:mx-0 max-h-[75vh] sm:max-h-[580px] overflow-hidden rounded-2xl sm:rounded-3xl bg-white dark:bg-[#1e1f20] border border-neutral-200 dark:border-[#3c4043] shadow-2xl z-50 flex flex-col text-neutral-800 dark:text-white animate-in fade-in zoom-in-95 duration-150"
+          className="fixed inset-0 z-50 bg-black/40 sm:bg-transparent backdrop-blur-xs sm:backdrop-blur-none flex items-start justify-center sm:block pt-16 sm:pt-0 px-3 sm:px-0 animate-in fade-in duration-150"
+          onClick={() => {
+            setIsOpen(false);
+            setIsEditMode(false);
+          }}
         >
-          {/* Header: Your Favorites & Edit Button */}
-          <div className="px-5 pt-4 pb-2 flex items-center justify-between border-b border-neutral-100 dark:border-[#3c4043]/40">
-            <div className="flex items-center gap-2">
-              <span className="text-[17px] font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
-                Your favorites
-              </span>
-              {favoriteServices.length > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-normal">
-                  {favoriteServices.length}
+          <div
+            style={
+              isMobile
+                ? undefined
+                : {
+                    position: 'fixed',
+                    top: `${(buttonRect?.bottom ?? 60) + 8}px`,
+                    right: `${Math.max(16, window.innerWidth - (buttonRect?.right ?? 376))}px`,
+                  }
+            }
+            onClick={(e) => e.stopPropagation()}
+            className="w-full sm:w-[360px] max-w-[360px] max-h-[80vh] sm:max-h-[580px] overflow-hidden rounded-3xl bg-white dark:bg-[#1e1f20] border border-neutral-200 dark:border-[#3c4043] shadow-2xl flex flex-col text-neutral-800 dark:text-white animate-in zoom-in-95 duration-150 pointer-events-auto"
+          >
+            {/* Header: Your Favorites & Edit Button */}
+            <div className="px-5 pt-4 pb-2 flex items-center justify-between border-b border-neutral-100 dark:border-[#3c4043]/40">
+              <div className="flex items-center gap-2">
+                <span className="text-[17px] font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
+                  Your favorites
                 </span>
-              )}
-            </div>
+                {favoriteServices.length > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-normal">
+                    {favoriteServices.length}
+                  </span>
+                )}
+              </div>
 
-            <button
-              onClick={() => setIsEditMode(!isEditMode)}
-              className={`p-2 rounded-full transition-colors flex items-center justify-center ${
-                isEditMode
-                  ? 'bg-blue-600 text-white hover:bg-blue-500'
-                  : 'bg-neutral-100 dark:bg-neutral-800/80 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white'
-              }`}
-              title={isEditMode ? 'Done editing' : 'Customize favorites'}
-            >
-              {isEditMode ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-            </button>
-          </div>
-
-          {/* Edit Mode Notice Banner */}
-          {isEditMode && (
-            <div className="bg-blue-50 dark:bg-blue-950/60 border-b border-blue-200 dark:border-blue-900/60 px-4 py-2 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
-              <span>คลิก ✕ หรือ ＋ เพื่อเพิ่ม/ลบรายการโปรด</span>
               <button
-                onClick={() => setIsEditMode(false)}
-                className="font-semibold underline hover:text-blue-900 dark:hover:text-white"
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={`p-2 rounded-full transition-colors flex items-center justify-center ${
+                  isEditMode
+                    ? 'bg-blue-600 text-white hover:bg-blue-500'
+                    : 'bg-neutral-100 dark:bg-neutral-800/80 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white'
+                }`}
+                title={isEditMode ? 'Done editing' : 'Customize favorites'}
               >
-                เสร็จสิ้น
+                {isEditMode ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
               </button>
             </div>
-          )}
+
+            {/* Edit Mode Notice Banner */}
+            {isEditMode && (
+              <div className="bg-blue-50 dark:bg-blue-950/60 border-b border-blue-200 dark:border-blue-900/60 px-4 py-2 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
+                <span>คลิก ✕ หรือ ＋ เพื่อเพิ่ม/ลบรายการโปรด</span>
+                <button
+                  onClick={() => setIsEditMode(false)}
+                  className="font-semibold underline hover:text-blue-900 dark:hover:text-white"
+                >
+                  เสร็จสิ้น
+                </button>
+              </div>
+            )}
 
           {/* Body Content */}
           <div className="flex-1 overflow-y-auto px-3 py-3 custom-scrollbar">
@@ -224,9 +280,11 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
             </a>
           </div>
         </div>
-      )}
-    </div>
-  );
+      </div>,
+      document.body
+    )}
+  </div>
+);
 }
 
 interface ServiceLauncherItemProps {
