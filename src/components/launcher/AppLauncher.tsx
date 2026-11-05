@@ -17,10 +17,11 @@ import {
 
 interface AppLauncherProps {
   currentRole?: string;
+  isLoggedIn?: boolean;
   onServicesChange?: () => void;
 }
 
-export default function AppLauncher({ currentRole, onServicesChange }: AppLauncherProps) {
+export default function AppLauncher({ currentRole, isLoggedIn, onServicesChange }: AppLauncherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -30,6 +31,8 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
   const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const isGuest = isLoggedIn !== undefined ? !isLoggedIn : (!currentRole || currentRole === 'guest');
 
   const updatePosition = () => {
     if (typeof window !== 'undefined') {
@@ -92,6 +95,7 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
 
   const toggleFavorite = async (serviceId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isGuest) return;
     try {
       const res = await fetch('/api/v1/user/favorites', {
         method: 'POST',
@@ -119,7 +123,7 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
   const handleToggle = () => {
     updatePosition();
     setIsOpen(!isOpen);
-    if (isOpen) {
+    if (isOpen || isGuest) {
       setIsEditMode(false);
     }
   };
@@ -163,34 +167,34 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
             onClick={(e) => e.stopPropagation()}
             className="w-full sm:w-[360px] max-w-[360px] max-h-[80vh] sm:max-h-[580px] overflow-hidden rounded-3xl bg-white dark:bg-[#1e1f20] border border-neutral-200 dark:border-[#3c4043] shadow-2xl flex flex-col text-neutral-800 dark:text-white animate-in zoom-in-95 duration-150 pointer-events-auto"
           >
-            {/* Header: Your Favorites & Edit Button */}
+            {/* Header: Favorites (Auth) or All Services (Guest) */}
             <div className="px-5 pt-4 pb-2 flex items-center justify-between border-b border-neutral-100 dark:border-[#3c4043]/40">
               <div className="flex items-center gap-2">
-                <span className="text-[17px] font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
-                  Your favorites
+                <span className="text-[15px] sm:text-[17px] font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
+                  {isGuest ? 'บริการของวิทยาลัย (CRIC Services)' : 'Your favorites'}
                 </span>
-                {favoriteServices.length > 0 && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-normal">
-                    {favoriteServices.length}
-                  </span>
-                )}
+                <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-normal">
+                  {isGuest ? services.length : favoriteServices.length}
+                </span>
               </div>
 
-              <button
-                onClick={() => setIsEditMode(!isEditMode)}
-                className={`p-2 rounded-full transition-colors flex items-center justify-center ${
-                  isEditMode
-                    ? 'bg-blue-600 text-white hover:bg-blue-500'
-                    : 'bg-neutral-100 dark:bg-neutral-800/80 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white'
-                }`}
-                title={isEditMode ? 'Done editing' : 'Customize favorites'}
-              >
-                {isEditMode ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-              </button>
+              {!isGuest && (
+                <button
+                  onClick={() => setIsEditMode(!isEditMode)}
+                  className={`p-2 rounded-full transition-colors flex items-center justify-center ${
+                    isEditMode
+                      ? 'bg-blue-600 text-white hover:bg-blue-500'
+                      : 'bg-neutral-100 dark:bg-neutral-800/80 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                  title={isEditMode ? 'Done editing' : 'Customize favorites'}
+                >
+                  {isEditMode ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+                </button>
+              )}
             </div>
 
-            {/* Edit Mode Notice Banner */}
-            {isEditMode && (
+            {/* Edit Mode Notice Banner (Auth only) */}
+            {!isGuest && isEditMode && (
               <div className="bg-blue-50 dark:bg-blue-950/60 border-b border-blue-200 dark:border-blue-900/60 px-4 py-2 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
                 <span>คลิก ✕ หรือ ＋ เพื่อเพิ่ม/ลบรายการโปรด</span>
                 <button
@@ -217,7 +221,21 @@ export default function AppLauncher({ currentRole, onServicesChange }: AppLaunch
                   ผู้ดูแลระบบ (Admin) สามารถเพิ่มบริการใหม่ผ่านเมนู Admin Management
                 </p>
               </div>
+            ) : isGuest ? (
+              /* Guest Mode: Clean 3-column grid of all available public services */
+              <div className="grid grid-cols-3 gap-2 px-1 py-1">
+                {services.map((service) => (
+                  <ServiceLauncherItem
+                    key={service.id}
+                    service={service}
+                    isEditMode={false}
+                    isFavorite={false}
+                    onToggleFavorite={() => {}}
+                  />
+                ))}
+              </div>
             ) : (
+              /* Authenticated Mode: Favorites + More Services */
               <>
                 {/* 3-Column Grid for Favorites */}
                 {favoriteServices.length > 0 ? (

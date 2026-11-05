@@ -230,7 +230,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
           <ThemeToggleButton />
 
           {/* The Google 9-Dots App Launcher Icon */}
-          <AppLauncher currentRole={session?.currentRole} />
+          <AppLauncher currentRole={session?.currentRole} isLoggedIn={isLoggedIn} />
 
           {/* User Profile Avatar & Dropdown OR Guest Sign-In Button */}
           {isLoggedIn && session ? (

@@ -362,7 +362,7 @@
   popover.className = 'cric-widget-popover';
   popover.innerHTML = `
     <div class="cric-widget-header">
-      <h4>Your favorites</h4>
+      <h4>บริการของวิทยาลัย (CRIC Services)</h4>
     </div>
     <div class="cric-widget-body">
       <div class="cric-widget-grid" id="cric-widget-grid">
@@ -537,6 +537,13 @@
         setCachedServices(data.data);
         grid.innerHTML = renderServicesHtml(data.data);
         servicesLoaded = true;
+
+        const headerTitle = popover.querySelector('.cric-widget-header h4');
+        if (headerTitle) {
+          const isGuest = !currentRole || currentRole === 'guest';
+          const titleText = isGuest ? 'บริการของวิทยาลัย (CRIC Services)' : 'Your favorites';
+          headerTitle.innerHTML = `${titleText} <span style="font-size: 11px; font-weight: normal; opacity: 0.7;">(${data.data.length})</span>`;
+        }
       } else if (!cached) {
         grid.innerHTML = `
           <div style="grid-column: span 3; text-align: center; padding: 20px 0; font-size: 12px; color: #9aa0a6;">
