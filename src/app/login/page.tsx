@@ -202,7 +202,7 @@ function LoginContent() {
       setExistingUser(null);
     }
     if (searchParams.get('expired') === '1') {
-      setWarningMsg('เซสชันการเข้าสู่ระบบร่วมหมดอายุแล้ว กรุณาเข้าสู่ระบบใหม่');
+      setWarningMsg('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
       setExistingUser(null);
     }
   }, [searchParams]);
@@ -440,7 +440,7 @@ function LoginContent() {
                   ดำเนินการต่อด้วยบัญชีนี้
                 </h2>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  คุณลงชื่อเข้าใช้งานในระบบส่วนกลางไว้แล้ว ต้องการเข้าใช้งานต่อด้วยบัญชีนี้หรือไม่?
+                  คุณลงชื่อเข้าใช้ไว้แล้ว ดำเนินการต่อด้วยบัญชีนี้หรือไม่
                 </p>
               </div>
 
@@ -492,7 +492,7 @@ function LoginContent() {
                   className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700 transition-all flex items-center justify-center gap-2"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>ใช้บัญชีอื่น / สลับบัญชี (Switch Account)</span>
+                  <span>สลับบัญชีผู้ใช้</span>
                 </button>
               </div>
             </div>
@@ -502,7 +502,7 @@ function LoginContent() {
               <div>
                 <h2 className="text-base font-semibold text-neutral-900 dark:text-white">ลงชื่อเข้าใช้งาน</h2>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {callerApp ? `เข้าสู่ระบบเพื่อใช้งาน ${callerApp.name}` : 'เข้าถึงแดชบอร์ดและระบบสารสนเทศวิทยาลัย'}
+                  {callerApp ? `เข้าสู่ระบบเพื่อใช้งาน ${callerApp.name}` : 'ระบบเข้าสู่ระบบกลาง วิทยาลัยการอาชีพเชียงราย'}
                 </p>
               </div>
 

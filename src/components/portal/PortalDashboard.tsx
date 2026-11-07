@@ -161,7 +161,7 @@ export default function PortalDashboard() {
           <div className="relative z-10 max-w-2xl space-y-2">
             <div className="inline-flex items-center gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-[11px] sm:text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{settings?.collegeNameTh || 'CRIC Digital College Ecosystem'}</span>
+              <span>{settings?.collegeNameTh || 'วิทยาลัยการอาชีพเชียงราย'}</span>
             </div>
 
             <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-neutral-900 dark:text-white">
@@ -172,7 +172,7 @@ export default function PortalDashboard() {
 
             <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
               {settings?.portalSubtitle ||
-                'ศูนย์รวมบริการดิจิทัลวิทยาลัย CRIC เข้าสู่ระบบเพียงครั้งเดียว (Single Sign-On) เพื่อเข้าใช้งานระบบและบริการภายในทั้งหมดได้อย่างสะดวก รวดเร็ว และปลอดภัย'}
+                'ศูนย์รวมระบบบริการดิจิทัล วิทยาลัยการอาชีพเชียงราย เข้าสู่ระบบด้วยบัญชีสถาบันเพื่อเข้าถึงบริการทั้งหมด'}
             </p>
 
             <div className="pt-1 sm:pt-2 flex flex-wrap items-center gap-2 sm:gap-3">
@@ -182,8 +182,8 @@ export default function PortalDashboard() {
                   className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-neutral-900/90 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 text-xs font-medium shadow-sm transition-all"
                 >
                   <Code className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
-                  <span className="hidden sm:inline">โค้ด 9-Dots Launcher สำหรับเว็บระบบลูก</span>
-                  <span className="inline sm:hidden">โค้ด 9-Dots</span>
+                  <span className="hidden sm:inline">โค้ดเมนู 9 จุด (App Launcher)</span>
+                  <span className="inline sm:hidden">โค้ดเมนู 9 จุด</span>
                 </button>
               )}
 
@@ -247,10 +247,10 @@ export default function PortalDashboard() {
               </div>
               <div>
                 <div className="text-xs font-semibold text-teal-800 dark:text-teal-300 flex items-center gap-1.5">
-                  <span>คุณกำลังเข้าใช้งานในมุมมอง "บุคคลทั่วไป / สาธารณะ" (Guest View)</span>
+                  <span>บริการสำหรับบุคคลทั่วไป (Guest View)</span>
                 </div>
                 <div className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
-                  ระบบแสดงเฉพาะบริการสาธารณะที่เปิดให้บุคคลภายนอกเข้าใช้งานได้ หากเป็นนักเรียน นักศึกษา หรือบุคลากร สามารถเข้าสู่ระบบเพื่อใช้งานระบบภายในทั้งหมด
+                  แสดงเฉพาะบริการสาธารณะ สำหรับนักเรียน นักศึกษา และบุคลากร กรุณาเข้าสู่ระบบเพื่อใช้งานบริการภายในสถานศึกษา
                 </div>
               </div>
             </div>
@@ -259,7 +259,7 @@ export default function PortalDashboard() {
               className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all shrink-0 hover:scale-102"
             >
               <LogIn className="w-3.5 h-3.5" />
-              <span>เข้าสู่ระบบ (Sign In)</span>
+              <span>เข้าสู่ระบบ</span>
             </Link>
           </div>
         )}
@@ -340,7 +340,7 @@ export default function PortalDashboard() {
                     : 'text-neutral-600 dark:text-neutral-400 hover:text-emerald-700 dark:hover:text-emerald-300'
                 }`}
               >
-                <span>🌐 บริการทั่วไป / สาธารณะ</span>
+                <span>🌐 บริการทั่วไป (Public)</span>
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${scopeFilter === 'public' ? 'bg-emerald-700 text-emerald-100' : 'bg-neutral-200 dark:bg-neutral-800'}`}>
                   {services.filter(isServicePublic).length}
                 </span>
@@ -353,7 +353,7 @@ export default function PortalDashboard() {
                     : 'text-neutral-600 dark:text-neutral-400 hover:text-indigo-700 dark:hover:text-indigo-300'
                 }`}
               >
-                <span>🏛️ บริการภายในสถานศึกษา</span>
+                <span>🏛️ บริการภายใน (Internal)</span>
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${scopeFilter === 'internal' ? 'bg-indigo-700 text-indigo-100' : 'bg-neutral-200 dark:bg-neutral-800'}`}>
                   {services.filter(isServiceInternal).length}
                 </span>
@@ -426,7 +426,7 @@ export default function PortalDashboard() {
           {loading ? (
             <div className="py-24 text-center text-neutral-400">
               <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-xs">กำลังโหลดบริการดิจิทัล...</p>
+              <p className="text-xs">กำลังโหลดรายการบริการ...</p>
             </div>
           ) : filteredServices.length === 0 ? (
             <div className="p-12 text-center rounded-3xl bg-white dark:bg-neutral-900/40 border border-neutral-200 dark:border-neutral-800/80 shadow-sm">
@@ -434,7 +434,7 @@ export default function PortalDashboard() {
               <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">ไม่พบบริการในหมวดหมู่นี้</h3>
               <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
                 {session?.currentRole === 'admin'
-                  ? 'คุณสามารถเพิ่มบริการใหม่ได้ที่หน้า Admin Management'
+                  ? 'เพิ่มบริการใหม่ได้ที่เมนู จัดการบริการ (Admin)'
                   : 'ยังไม่มีบริการที่ตรงกับเงื่อนไขการค้นหาในบทบาทของคุณ'}
               </p>
               {session?.currentRole === 'admin' && (
@@ -565,7 +565,7 @@ export default function PortalDashboard() {
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
                   <Code className="w-5 h-5 text-blue-500 dark:text-blue-400" />
-                  <span>วิธีนำปุ่ม 9 จุดไปแปะบนเว็บระบบลูก</span>
+                  <span>การติดตั้งเมนูบริการ 9 จุด (App Launcher)</span>
                 </h3>
                 <button
                   onClick={() => setShowEmbedModal(false)}
@@ -576,7 +576,7 @@ export default function PortalDashboard() {
               </div>
 
               <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                คัดลอกโค้ดสคริปต์นี้ไปวางไว้ก่อนปิดแท็ก <code className="text-blue-600 dark:text-blue-400 font-mono">&lt;/body&gt;</code> ในเว็บแอปพลิเคชันระบบภายในใดๆ ของวิทยาลัย ปุ่ม 9 จุด (App Launcher) สไตล์ Google จะปรากฏที่มุมขวาบนของระบบนั้นโดยอัตโนมัติ
+                คัดลอกโค้ดสคริปต์นี้ไปวางก่อนปิดแท็ก <code className="text-blue-600 dark:text-blue-400 font-mono">&lt;/body&gt;</code> ในระบบของวิทยาลัย เมนูทางลัด 9 จุดจะแสดงที่มุมขวาบนโดยอัตโนมัติ
               </p>
 
               <div className="relative">
@@ -597,7 +597,7 @@ export default function PortalDashboard() {
                   onClick={() => setShowEmbedModal(false)}
                   className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-medium text-white shadow-sm"
                 >
-                  เข้าใจแล้ว
+                  ปิดหน้าต่าง
                 </button>
               </div>
             </div>

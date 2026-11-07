@@ -541,7 +541,7 @@
         const headerTitle = popover.querySelector('.cric-widget-header h4');
         if (headerTitle) {
           const isGuest = !currentRole || currentRole === 'guest';
-          const titleText = isGuest ? 'บริการของวิทยาลัย (CRIC Services)' : 'Your favorites';
+          const titleText = isGuest ? 'บริการของวิทยาลัย' : 'รายการโปรด';
           headerTitle.innerHTML = `${titleText} <span style="font-size: 11px; font-weight: normal; opacity: 0.7;">(${data.data.length})</span>`;
         }
       } else if (!cached) {

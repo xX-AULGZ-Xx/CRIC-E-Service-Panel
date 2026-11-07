@@ -172,7 +172,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
               type="text"
               value={searchQuery}
               onChange={handleSearch}
-              placeholder="ค้นหาบริการภายในวิทยาลัย..."
+              placeholder="ค้นหาบริการ..."
               className="w-full pl-9 pr-4 py-2 bg-neutral-100 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-700/60 rounded-full text-xs sm:text-sm text-neutral-800 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/60 transition-all"
             />
           </div>
@@ -238,7 +238,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
               <button
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                 className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                title="เมนูผู้ใช้งาน"
+                title="บัญชีผู้ใช้"
               >
                 <img
                   src={session.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
@@ -354,7 +354,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
             type="text"
             value={searchQuery}
             onChange={handleSearch}
-            placeholder="ค้นหาบริการภายในวิทยาลัย..."
+            placeholder="ค้นหาบริการ..."
             className="w-full pl-9 pr-4 py-2 bg-neutral-100 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-700/60 rounded-full text-xs text-neutral-800 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/60 transition-all shadow-2xs"
           />
         </div>

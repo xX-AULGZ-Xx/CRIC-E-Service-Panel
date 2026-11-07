@@ -171,7 +171,7 @@ export default function AppLauncher({ currentRole, isLoggedIn, onServicesChange 
             <div className="px-5 pt-4 pb-2 flex items-center justify-between border-b border-neutral-100 dark:border-[#3c4043]/40">
               <div className="flex items-center gap-2">
                 <span className="text-[15px] sm:text-[17px] font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
-                  {isGuest ? 'บริการของวิทยาลัย (CRIC Services)' : 'Your favorites'}
+                  {isGuest ? 'บริการของวิทยาลัย' : 'รายการโปรด'}
                 </span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-normal">
                   {isGuest ? services.length : favoriteServices.length}
@@ -196,7 +196,7 @@ export default function AppLauncher({ currentRole, isLoggedIn, onServicesChange 
             {/* Edit Mode Notice Banner (Auth only) */}
             {!isGuest && isEditMode && (
               <div className="bg-blue-50 dark:bg-blue-950/60 border-b border-blue-200 dark:border-blue-900/60 px-4 py-2 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
-                <span>คลิก ✕ หรือ ＋ เพื่อเพิ่ม/ลบรายการโปรด</span>
+                <span>แตะ ✕ เพื่อลบ หรือ ＋ เพื่อเพิ่มรายการโปรด</span>
                 <button
                   onClick={() => setIsEditMode(false)}
                   className="font-semibold underline hover:text-blue-900 dark:hover:text-white"
@@ -253,7 +253,7 @@ export default function AppLauncher({ currentRole, isLoggedIn, onServicesChange 
                 ) : (
                   <div className="py-6 text-center text-xs text-neutral-500 px-4 bg-neutral-50 dark:bg-neutral-900/40 rounded-2xl mx-1 my-2">
                     <Star className="w-5 h-5 text-neutral-400 dark:text-neutral-600 mx-auto mb-1" />
-                    ยังไม่ได้เลือกบริการโปรด (กดปุ่มดินสอเพื่อเลือก)
+                    ยังไม่มีรายการโปรด แตะไอคอนดินสอเพื่อเลือกบริการที่ใช้งานบ่อย
                   </div>
                 )}
 
@@ -262,7 +262,7 @@ export default function AppLauncher({ currentRole, isLoggedIn, onServicesChange 
                   <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-[#3c4043]/40">
                     <div className="px-2 mb-2 flex items-center justify-between">
                       <span className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                        {isEditMode ? 'บริการอื่นๆ ที่สามารถเพิ่มเป็นรายการโปรดได้' : 'More CRIC Services'}
+                        {isEditMode ? 'บริการอื่นๆ' : 'บริการอื่นๆ'}
                       </span>
                     </div>
 

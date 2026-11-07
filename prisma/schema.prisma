@@ -53,17 +53,17 @@ model UserFavorite {
 
 model SystemSetting {
   id                        String   @id @default("default")
-  collegeNameTh             String   @default("วิทยาลัยอาชีวศึกษา CRIC")
+  collegeNameTh             String   @default("วิทยาลัยการอาชีพเชียงราย")
   collegeNameEn             String   @default("CRIC Vocational College")
   portalTitle               String   @default("CRIC E-Service Panel")
-  portalSubtitle            String   @default("ศูนย์รวมบริการดิจิทัลสำหรับนักศึกษาและบุคลากร")
+  portalSubtitle            String   @default("ศูนย์รวมระบบบริการดิจิทัล วิทยาลัยการอาชีพเชียงราย เข้าสู่ระบบด้วยบัญชีสถาบันเพื่อเข้าถึงบริการทั้งหมด")
   logoUrl                   String?
   contactEmail              String?  @default("support@cric.ac.th")
   contactPhone              String?  @default("02-123-4567")
   helpdeskUrl               String?  @default("https://helpdesk.cric.ac.th")
   footerText                String   @default("© 2026 CRIC College. All rights reserved.")
   maintenanceMode           Boolean  @default(false)
-  maintenanceMessage        String   @default("ระบบกำลังอยู่ระหว่างการปรับปรุงชั่วคราว เพื่อพัฒนาประสิทธิภาพการบริการ ขออภัยในความไม่สะดวก")
+  maintenanceMessage        String   @default("ระบบอยู่ระหว่างปิดปรับปรุงชั่วคราว ขออภัยในความไม่สะดวก")
   allowUserCustomFavorites  Boolean  @default(true)
   showEmbedWidgetSnippet    Boolean  @default(true)
   demoModeEnabled           Boolean  @default(true)
