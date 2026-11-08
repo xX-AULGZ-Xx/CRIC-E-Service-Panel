@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLauncher from '@/components/launcher/AppLauncher';
 import { UserRole } from '@/types/service';
 import { 
@@ -27,78 +27,16 @@ interface ClientItem {
   badgeColor: string;
 }
 
-const CLIENTS: ClientItem[] = [
-  {
-    id: 'cric-plan-app',
-    name: 'ระบบแผนงานและงบประมาณ (CRIC Plan)',
-    secret: 'cric-plan-secret-key-2026',
-    rootUrl: 'https://plan.cric.ac.th',
-    redirectUris: [
-      'https://plan.cric.ac.th/*',
-      'https://plan.cric.ac.th/auth/callback',
-      'http://localhost:8001/*',
-    ],
-    status: 'Ready for Connection',
-    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
-  },
-  {
-    id: 'cric-rcms-app',
-    name: 'ระบบบริหารจัดการงานวิจัยและวิทยาลัย (CRIC RCMS)',
-    secret: 'cric-rcms-secret-key-2026',
-    rootUrl: 'https://rcms.cric.ac.th',
-    redirectUris: [
-      'https://rcms.cric.ac.th/*',
-      'https://rcms.cric.ac.th/auth/callback',
-      'http://localhost:8002/*',
-    ],
-    status: 'Ready for Connection',
-    badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30',
-  },
-  {
-    id: 'cric-portal',
-    name: 'CRIC E-Service Portal (ระบบกลาง)',
-    secret: 'cric-portal-secret-key',
-    rootUrl: 'http://localhost:3000',
-    redirectUris: [
-      'http://localhost:3000/*',
-      'http://localhost:3000/api/auth/callback/keycloak',
-    ],
-    status: 'Active',
-    badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30',
-  },
-];
-
-const OIDC_ENDPOINTS = [
-  {
-    label: 'OpenID Discovery Document',
-    url: 'https://sso.cric.ac.th/realms/cric-college/.well-known/openid-configuration',
-    desc: 'เอกสารรวมการตั้งค่าและ Public Key ทั้งหมดของ Keycloak IdP',
-  },
-  {
-    label: 'Authorization Endpoint',
-    url: 'https://sso.cric.ac.th/realms/cric-college/protocol/openid-connect/auth',
-    desc: 'URL ที่ระบบลูกส่งผู้ใช้มา Login SSO',
-  },
-  {
-    label: 'Token Endpoint',
-    url: 'https://sso.cric.ac.th/realms/cric-college/protocol/openid-connect/token',
-    desc: 'URL สำหรับแลกเปลี่ยน Authorization Code เป็น Access & ID Token (JWT)',
-  },
-  {
-    label: 'Userinfo Endpoint',
-    url: 'https://sso.cric.ac.th/realms/cric-college/protocol/openid-connect/userinfo',
-    desc: 'URL ดึงข้อมูลผู้ใช้งาน (Name, Email, Roles)',
-  },
-  {
-    label: 'Single Logout (SLO)',
-    url: 'https://sso.cric.ac.th/realms/cric-college/protocol/openid-connect/logout',
-    desc: 'URL สำหรับสั่งออกจากระบบพร้อมกันทุกระบบ',
-  },
-];
-
 export default function AdminIntegrationManager() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
+  const [settings, setSettings] = useState<{
+    keycloakPublicUrl?: string;
+    keycloakRealm?: string;
+    keycloakClientId?: string;
+    keycloakClientSecret?: string;
+  } | null>(null);
+  const [portalOrigin, setPortalOrigin] = useState('https://panel.cric.ac.th');
 
   // Simulator states
   const [simClient, setSimClient] = useState('cric-plan-app');
@@ -108,6 +46,92 @@ export default function AdminIntegrationManager() {
 
   // Code snippet tab
   const [codeTab, setCodeTab] = useState<'html' | 'laravel' | 'node' | 'python'>('html');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setPortalOrigin(window.location.origin);
+    }
+    fetch('/api/v1/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          setSettings(data.data);
+        }
+      })
+      .catch((err) => console.error('Failed to load settings in integration manager', err));
+  }, []);
+
+  const keycloakUrl = (settings?.keycloakPublicUrl || 'https://sso.cric.ac.th').replace(/\/$/, '');
+  const realm = settings?.keycloakRealm || 'cric-college';
+  const portalClientId = settings?.keycloakClientId || 'cric-portal';
+  const portalClientSecret = settings?.keycloakClientSecret || 'cric-portal-secret-key';
+
+  const clients: ClientItem[] = [
+    {
+      id: 'cric-plan-app',
+      name: 'ระบบแผนงานและงบประมาณ (CRIC Plan)',
+      secret: 'cric-plan-secret-key-2026',
+      rootUrl: 'https://plan.cric.ac.th',
+      redirectUris: [
+        'https://plan.cric.ac.th/*',
+        'https://plan.cric.ac.th/auth/callback',
+      ],
+      status: 'Active',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+    },
+    {
+      id: 'cric-rcms-app',
+      name: 'ระบบบริหารจัดการงานวิจัยและวิทยาลัย (CRIC RCMS)',
+      secret: 'cric-rcms-secret-key-2026',
+      rootUrl: 'https://rcms.cric.ac.th',
+      redirectUris: [
+        'https://rcms.cric.ac.th/*',
+        'https://rcms.cric.ac.th/auth/callback',
+      ],
+      status: 'Active',
+      badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30',
+    },
+    {
+      id: portalClientId,
+      name: 'CRIC E-Service Panel (ระบบกลาง)',
+      secret: portalClientSecret,
+      rootUrl: portalOrigin,
+      redirectUris: [
+        `${portalOrigin}/*`,
+        `${portalOrigin}/api/auth/callback/keycloak`,
+      ],
+      status: 'Active',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30',
+    },
+  ];
+
+  const oidcEndpoints = [
+    {
+      label: 'OpenID Discovery Document',
+      url: `${keycloakUrl}/realms/${realm}/.well-known/openid-configuration`,
+      desc: 'เอกสารรวมการตั้งค่าและ Public Key ทั้งหมดของ Keycloak IdP',
+    },
+    {
+      label: 'Authorization Endpoint',
+      url: `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth`,
+      desc: 'URL ที่ระบบลูกส่งผู้ใช้มา Login SSO',
+    },
+    {
+      label: 'Token Endpoint',
+      url: `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`,
+      desc: 'URL สำหรับแลกเปลี่ยน Authorization Code เป็น Access & ID Token (JWT)',
+    },
+    {
+      label: 'Userinfo Endpoint',
+      url: `${keycloakUrl}/realms/${realm}/protocol/openid-connect/userinfo`,
+      desc: 'URL ดึงข้อมูลผู้ใช้งาน (Name, Email, Roles)',
+    },
+    {
+      label: 'Single Logout (SLO)',
+      url: `${keycloakUrl}/realms/${realm}/protocol/openid-connect/logout`,
+      desc: 'URL สำหรับสั่งออกจากระบบพร้อมกันทุกระบบ',
+    },
+  ];
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -169,7 +193,7 @@ export default function AdminIntegrationManager() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {CLIENTS.map((client) => {
+          {clients.map((client) => {
             const isSecretVisible = showSecret[client.id];
 
             return (
@@ -292,7 +316,7 @@ export default function AdminIntegrationManager() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/60 font-mono">
-              {OIDC_ENDPOINTS.map((ep, idx) => (
+              {oidcEndpoints.map((ep, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-neutral-850/50 transition-colors">
                   <td className="px-4 py-3 font-medium text-neutral-900 dark:text-white font-sans">{ep.label}</td>
                   <td className="px-4 py-3 text-blue-600 dark:text-blue-400 max-w-sm truncate">{ep.url}</td>
@@ -507,7 +531,7 @@ export default function AdminIntegrationManager() {
             {codeTab === 'html' && (
               <pre className="p-4 bg-slate-100 dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-2xl text-xs font-mono text-emerald-600 dark:text-emerald-400 overflow-x-auto">
 {`<!-- วางโค้ดนี้ไว้ก่อนปิดแท็ก </body> ในหน้าเว็บของระบบลูก -->
-<script src="http://localhost:3000/widget/launcher.js" defer></script>`}
+<script src="${portalOrigin}/widget/launcher.js" defer></script>`}
               </pre>
             )}
 
@@ -521,8 +545,8 @@ export default function AdminIntegrationManager() {
     'client_id' => 'cric-plan-app',
     'client_secret' => 'cric-plan-secret-key-2026',
     'redirect' => 'https://plan.cric.ac.th/auth/callback',
-    'base_url' => 'https://sso.cric.ac.th',
-    'realms' => 'cric-college'
+    'base_url' => '${keycloakUrl}',
+    'realms' => '${realm}'
 ],
 
 // 3. ใน AuthController.php
@@ -541,7 +565,7 @@ import KeycloakProvider from "next-auth/providers/keycloak";
 KeycloakProvider({
   clientId: "cric-plan-app",
   clientSecret: "cric-plan-secret-key-2026",
-  issuer: "https://sso.cric.ac.th/realms/cric-college",
+  issuer: "${keycloakUrl}/realms/${realm}",
 })`}
               </pre>
             )}
@@ -551,8 +575,8 @@ KeycloakProvider({
 {`# Django mozilla-django-oidc
 OIDC_RP_CLIENT_ID = 'cric-rcms-app'
 OIDC_RP_CLIENT_SECRET = 'cric-rcms-secret-key-2026'
-OIDC_OP_AUTHORIZATION_ENDPOINT = 'https://sso.cric.ac.th/realms/cric-college/protocol/openid-connect/auth'
-OIDC_OP_TOKEN_ENDPOINT = 'https://sso.cric.ac.th/realms/cric-college/protocol/openid-connect/token'`}
+OIDC_OP_AUTHORIZATION_ENDPOINT = '${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth'
+OIDC_OP_TOKEN_ENDPOINT = '${keycloakUrl}/realms/${realm}/protocol/openid-connect/token'`}
               </pre>
             )}
           </div>

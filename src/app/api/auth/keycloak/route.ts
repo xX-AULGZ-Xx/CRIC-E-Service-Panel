@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getKeycloakPublicUrl } from '@/lib/keycloak';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,9 +17,16 @@ export async function GET(req: NextRequest) {
 
     const redirectUri = `${baseUrl}/api/auth/callback/keycloak`;
 
-    const keycloakPublicUrl = getKeycloakPublicUrl(req);
-    const realm = process.env.KEYCLOAK_REALM || 'cric-college';
-    const clientId = process.env.KEYCLOAK_CLIENT_ID || 'cric-portal';
+    let dbSettings = null;
+    try {
+      dbSettings = await prisma.systemSetting.findUnique({ where: { id: 'default' } });
+    } catch (e) {
+      console.warn('Failed to query dbSettings in keycloak route, using fallbacks', e);
+    }
+
+    const keycloakPublicUrl = dbSettings?.keycloakPublicUrl || getKeycloakPublicUrl(req);
+    const realm = dbSettings?.keycloakRealm || process.env.KEYCLOAK_REALM || 'cric-college';
+    const clientId = dbSettings?.keycloakClientId || process.env.KEYCLOAK_CLIENT_ID || 'cric-portal';
 
     const state = crypto.randomBytes(16).toString('hex');
     const authEndpoint = `${keycloakPublicUrl}/realms/${realm}/protocol/openid-connect/auth`;

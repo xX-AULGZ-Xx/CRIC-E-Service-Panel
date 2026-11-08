@@ -31,10 +31,10 @@ const DEFAULT_SETTINGS = {
   googleHostedDomain: 'cric.ac.th',
 
   // Keycloak Central SSO Integration
-  keycloakPublicUrl: 'https://sso.cric.ac.th',
-  keycloakInternalUrl: 'http://keycloak:8080',
-  keycloakClientId: 'cric-portal',
-  keycloakClientSecret: null,
+  keycloakPublicUrl: process.env.KEYCLOAK_PUBLIC_URL || 'https://sso.cric.ac.th',
+  keycloakInternalUrl: process.env.KEYCLOAK_INTERNAL_URL || process.env.KEYCLOAK_URL || 'http://keycloak:8080',
+  keycloakClientId: process.env.KEYCLOAK_CLIENT_ID || 'cric-portal',
+  keycloakClientSecret: process.env.KEYCLOAK_CLIENT_SECRET || 'cric-portal-secret-key',
   centralGatewayEnabled: true,
 };
 
@@ -71,9 +71,19 @@ export async function GET() {
       });
     }
 
+    const effectiveSettings = {
+      ...DEFAULT_SETTINGS,
+      ...settings,
+      keycloakPublicUrl: settings.keycloakPublicUrl || process.env.KEYCLOAK_PUBLIC_URL || 'https://sso.cric.ac.th',
+      keycloakInternalUrl: settings.keycloakInternalUrl || process.env.KEYCLOAK_INTERNAL_URL || process.env.KEYCLOAK_URL || 'http://keycloak:8080',
+      keycloakRealm: settings.keycloakRealm || process.env.KEYCLOAK_REALM || 'cric-college',
+      keycloakClientId: settings.keycloakClientId || process.env.KEYCLOAK_CLIENT_ID || 'cric-portal',
+      keycloakClientSecret: settings.keycloakClientSecret || process.env.KEYCLOAK_CLIENT_SECRET || 'cric-portal-secret-key',
+    };
+
     return NextResponse.json({
       success: true,
-      data: settings,
+      data: effectiveSettings,
     });
   } catch (error: any) {
     console.warn('Prisma query failed, falling back to local file storage:', error.message);

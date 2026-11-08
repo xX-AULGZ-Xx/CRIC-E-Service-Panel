@@ -50,10 +50,17 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const keycloakBaseUrl = getKeycloakInternalUrl();
-    const realm = process.env.KEYCLOAK_REALM || 'cric-college';
-    const clientId = process.env.KEYCLOAK_CLIENT_ID || 'cric-portal';
-    const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET || 'cric-portal-secret-key';
+    let dbSettings = null;
+    try {
+      dbSettings = await prisma.systemSetting.findUnique({ where: { id: 'default' } });
+    } catch (e) {
+      console.warn('Failed to query dbSettings in keycloak callback route, using fallbacks', e);
+    }
+
+    const keycloakBaseUrl = dbSettings?.keycloakInternalUrl || getKeycloakInternalUrl();
+    const realm = dbSettings?.keycloakRealm || process.env.KEYCLOAK_REALM || 'cric-college';
+    const clientId = dbSettings?.keycloakClientId || process.env.KEYCLOAK_CLIENT_ID || 'cric-portal';
+    const clientSecret = dbSettings?.keycloakClientSecret || process.env.KEYCLOAK_CLIENT_SECRET || 'cric-portal-secret-key';
 
     // 1. Exchange authorization code for tokens
     const tokenEndpoint = `${keycloakBaseUrl}/realms/${realm}/protocol/openid-connect/token`;

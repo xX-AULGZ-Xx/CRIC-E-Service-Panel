@@ -63,10 +63,10 @@ export const DEFAULT_SETTINGS: SystemSettingsData = {
   googleHostedDomain: 'cric.ac.th',
 
   // Keycloak Central SSO Integration
-  keycloakPublicUrl: 'https://sso.cric.ac.th',
-  keycloakInternalUrl: 'http://keycloak:8080',
-  keycloakClientId: 'cric-portal',
-  keycloakClientSecret: null,
+  keycloakPublicUrl: process.env.KEYCLOAK_PUBLIC_URL || 'https://sso.cric.ac.th',
+  keycloakInternalUrl: process.env.KEYCLOAK_INTERNAL_URL || process.env.KEYCLOAK_URL || 'http://keycloak:8080',
+  keycloakClientId: process.env.KEYCLOAK_CLIENT_ID || 'cric-portal',
+  keycloakClientSecret: process.env.KEYCLOAK_CLIENT_SECRET || 'cric-portal-secret-key',
   centralGatewayEnabled: true,
 };
 
