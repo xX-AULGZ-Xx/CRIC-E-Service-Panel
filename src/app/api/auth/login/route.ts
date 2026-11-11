@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { DEFAULT_USERS } from '@/lib/auth';
-import { findUserByLoginIdentifier, recordUserLogin, hashUserPassword } from '@/lib/users';
+import { findUserByLoginIdentifier, recordUserLogin, hashUserPassword, verifyUserPassword } from '@/lib/users';
 import { UserRole, UserSession } from '@/types/service';
 import { setUnifiedAuthCookies } from '@/lib/session';
 import { isDemoModeActive } from '@/lib/settings';
@@ -167,8 +167,7 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        const inputHash = hashPassword(password);
-        if (dbUser.passwordHash === inputHash || (password === 'admin123' && dbUser.role === 'admin' && demoEnabled)) {
+        if (verifyUserPassword(password, dbUser.passwordHash) || (password === 'admin123' && dbUser.role === 'admin' && demoEnabled)) {
           targetRole = dbUser.role as UserRole;
           customDisplayName = dbUser.displayName;
           customEmail = dbUser.email;
@@ -221,11 +220,19 @@ export async function POST(req: NextRequest) {
           subUserObj = subsystemAuth.user;
           const rawRole = (subUserObj.role || '').toLowerCase();
           let mappedRole: UserRole = 'teacher';
-          if (rawRole === 'admin' || rawRole === 'director' || rawRole === 'super_admin') {
+          if (rawRole === 'admin' || rawRole === 'super_admin') {
             mappedRole = 'admin';
+          } else if (rawRole === 'director') {
+            mappedRole = 'director';
+          } else if (rawRole === 'deputy_director') {
+            mappedRole = 'deputy_director';
+          } else if (rawRole === 'planning_officer') {
+            mappedRole = 'planning_officer';
+          } else if (rawRole === 'head_dept' || rawRole === 'head_of_dept') {
+            mappedRole = 'head_dept';
           } else if (rawRole === 'student') {
             mappedRole = 'student';
-          } else if (rawRole === 'staff' || rawRole === 'planning_officer') {
+          } else if (rawRole === 'staff') {
             mappedRole = 'staff';
           } else {
             mappedRole = 'teacher';

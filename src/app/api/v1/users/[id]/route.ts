@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUserSession } from '@/lib/auth';
-import { readLocalUsers, writeLocalUsers, sanitizeUser } from '@/lib/users';
+import { ALL_USER_ROLES, getCurrentUserSession } from '@/lib/auth';
+import {
+  hashUserPassword,
+  readLocalUsers,
+  writeLocalUsers,
+  sanitizeUser,
+  saveUserDepartments,
+} from '@/lib/users';
+import { UserRole } from '@/types/service';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +26,18 @@ export async function GET(
 
     let user: any = null;
     try {
-      user = await prisma.user.findUnique({ where: { id } });
+      user = await prisma.user.findUnique({
+        where: { id },
+        include: {
+          departments: {
+            include: {
+              department: {
+                include: { division: true },
+              },
+            },
+          },
+        },
+      });
     } catch {
       const local = await readLocalUsers();
       user = local.find((u) => u.id === id) || null;
@@ -47,13 +65,71 @@ export async function PUT(
 
     const { id } = await params;
     const body = await req.json();
-    const { displayName, email, department, role, isActive, avatarUrl } = body;
+    const {
+      username,
+      displayName,
+      email,
+      password,
+      department,
+      position,
+      personnelType,
+      departmentIds,
+      headDeptIds,
+      role,
+      isActive,
+      avatarUrl,
+    } = body;
 
     const updateData: any = {};
+    if (username !== undefined) {
+      const cleanUsername = String(username).trim().toLowerCase();
+      if (!cleanUsername) {
+        return NextResponse.json({ success: false, error: 'กรุณาระบุ Username' }, { status: 400 });
+      }
+      try {
+        const dupUser = await prisma.user.findFirst({
+          where: { username: cleanUsername, NOT: { id } },
+        });
+        if (dupUser) {
+          return NextResponse.json(
+            { success: false, error: `ชื่อผู้ใช้ "${cleanUsername}" มีอยู่ในระบบแล้ว` },
+            { status: 400 }
+          );
+        }
+      } catch {}
+      updateData.username = cleanUsername;
+    }
     if (displayName !== undefined) updateData.displayName = displayName.trim();
-    if (email !== undefined) updateData.email = email.trim().toLowerCase();
+    if (email !== undefined) {
+      const cleanEmail = String(email).trim().toLowerCase();
+      if (cleanEmail) {
+        try {
+          const dupEmail = await prisma.user.findFirst({
+            where: { email: cleanEmail, NOT: { id } },
+          });
+          if (dupEmail) {
+            return NextResponse.json(
+              { success: false, error: `อีเมล "${cleanEmail}" มีอยู่ในระบบแล้ว` },
+              { status: 400 }
+            );
+          }
+        } catch {}
+        updateData.email = cleanEmail;
+      }
+    }
+    if (password !== undefined && String(password).trim().length > 0) {
+      if (String(password).trim().length < 4) {
+        return NextResponse.json(
+          { success: false, error: 'รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร' },
+          { status: 400 }
+        );
+      }
+      updateData.passwordHash = hashUserPassword(String(password).trim());
+    }
     if (department !== undefined) updateData.department = department ? department.trim() : null;
-    if (role !== undefined) updateData.role = role;
+    if (position !== undefined) updateData.position = position ? position.trim() : null;
+    if (personnelType !== undefined) updateData.personnelType = personnelType ? String(personnelType).trim() : null;
+    if (role !== undefined && ALL_USER_ROLES.includes(role as UserRole)) updateData.role = role;
     if (isActive !== undefined) updateData.isActive = Boolean(isActive);
     if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl || null;
 
@@ -62,6 +138,28 @@ export async function PUT(
       updatedUser = await prisma.user.update({
         where: { id },
         data: updateData,
+      });
+
+      if (Array.isArray(departmentIds)) {
+        await saveUserDepartments(
+          id,
+          departmentIds,
+          Array.isArray(headDeptIds) ? headDeptIds : [],
+          department !== undefined ? (department ? department.trim() : null) : updatedUser.department
+        );
+      }
+
+      updatedUser = await prisma.user.findUnique({
+        where: { id },
+        include: {
+          departments: {
+            include: {
+              department: {
+                include: { division: true },
+              },
+            },
+          },
+        },
       });
     } catch (e: any) {
       console.warn('Prisma update failed, updating local file fallback:', e.message);

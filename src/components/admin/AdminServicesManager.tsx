@@ -71,7 +71,11 @@ const PRESET_ICONS: PresetIcon[] = [
 const AVAILABLE_ROLES: { role: UserRole; label: string; icon: string; short: string }[] = [
   { role: 'guest', label: 'บุคคลทั่วไป / สาธารณะ', icon: '🌐', short: 'guest' },
   { role: 'student', label: 'นักศึกษา', icon: '🎓', short: 'student' },
-  { role: 'teacher', label: 'ครู / อาจารย์', icon: '👨‍🏫', short: 'teacher' },
+  { role: 'teacher', label: 'ครู / ผู้สอน', icon: '👨‍🏫', short: 'teacher' },
+  { role: 'head_dept', label: 'หัวหน้าแผนก/งาน', icon: '📋', short: 'head_dept' },
+  { role: 'planning_officer', label: 'เจ้าหน้าที่งานวางแผนฯ', icon: '📊', short: 'planning_officer' },
+  { role: 'deputy_director', label: 'รองผู้อำนวยการ', icon: '🏛️', short: 'deputy_director' },
+  { role: 'director', label: 'ผู้อำนวยการ', icon: '🎖️', short: 'director' },
   { role: 'staff', label: 'บุคลากร / จนท.', icon: '💼', short: 'staff' },
   { role: 'admin', label: 'ผู้ดูแลระบบ', icon: '🛡️', short: 'admin' },
 ];

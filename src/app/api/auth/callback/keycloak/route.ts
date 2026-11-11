@@ -150,6 +150,14 @@ export async function GET(req: NextRequest) {
       if (assignedRole !== 'admin') {
         if (realmRoles.includes('admin')) {
           assignedRole = 'admin';
+        } else if (realmRoles.includes('director')) {
+          assignedRole = 'director';
+        } else if (realmRoles.includes('deputy_director')) {
+          assignedRole = 'deputy_director';
+        } else if (realmRoles.includes('planning_officer')) {
+          assignedRole = 'planning_officer';
+        } else if (realmRoles.includes('head_dept')) {
+          assignedRole = 'head_dept';
         } else if (realmRoles.includes('teacher')) {
           assignedRole = 'teacher';
         } else if (realmRoles.includes('staff')) {

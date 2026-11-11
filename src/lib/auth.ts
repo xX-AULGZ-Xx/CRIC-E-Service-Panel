@@ -1,6 +1,30 @@
 import { cookies } from 'next/headers';
 import { UserRole, UserSession } from '@/types/service';
 
+export const ALL_USER_ROLES: UserRole[] = [
+  'admin',
+  'director',
+  'deputy_director',
+  'planning_officer',
+  'head_dept',
+  'teacher',
+  'staff',
+  'student',
+  'guest',
+];
+
+export const ROLE_LABELS_TH: Record<UserRole, string> = {
+  admin: 'ผู้ดูแลระบบ',
+  director: 'ผู้อำนวยการ',
+  deputy_director: 'รองผู้อำนวยการ',
+  planning_officer: 'เจ้าหน้าที่แผนงาน',
+  head_dept: 'หัวหน้าแผนก/งาน',
+  teacher: 'ครู / อาจารย์',
+  staff: 'เจ้าหน้าที่',
+  student: 'นักเรียน / นักศึกษา',
+  guest: 'บุคคลทั่วไป',
+};
+
 export const DEFAULT_USERS: Record<UserRole, UserSession> = {
   admin: {
     userId: 'user-admin-001',
@@ -10,6 +34,42 @@ export const DEFAULT_USERS: Record<UserRole, UserSession> = {
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     roles: ['admin', 'staff', 'teacher'],
     currentRole: 'admin',
+  },
+  director: {
+    userId: 'user-director-001',
+    username: 'director',
+    displayName: 'ผู้อำนวยการวิทยาลัย (Director)',
+    email: 'director@cric.ac.th',
+    avatarUrl: undefined,
+    roles: ['director'],
+    currentRole: 'director',
+  },
+  deputy_director: {
+    userId: 'user-deputy-001',
+    username: 'deputy.strat',
+    displayName: 'รองผู้อำนวยการ (Deputy Director)',
+    email: 'deputy@cric.ac.th',
+    avatarUrl: undefined,
+    roles: ['deputy_director'],
+    currentRole: 'deputy_director',
+  },
+  planning_officer: {
+    userId: 'user-planning-001',
+    username: 'planning1',
+    displayName: 'เจ้าหน้าที่งานวางแผน (Planning Officer)',
+    email: 'planning@cric.ac.th',
+    avatarUrl: undefined,
+    roles: ['planning_officer'],
+    currentRole: 'planning_officer',
+  },
+  head_dept: {
+    userId: 'user-head-001',
+    username: 'head.dept',
+    displayName: 'หัวหน้าแผนก/หัวหน้างาน (Head of Dept)',
+    email: 'head.dept@cric.ac.th',
+    avatarUrl: undefined,
+    roles: ['head_dept'],
+    currentRole: 'head_dept',
   },
   teacher: {
     userId: 'user-teacher-001',
@@ -86,10 +146,16 @@ export async function isAuthenticatedUser(): Promise<boolean> {
   return loggedInCookie === 'true';
 }
 
+const ROLE_INHERITANCE: Record<string, string[]> = {
+  director: ['director', 'deputy_director', 'planning_officer', 'head_dept', 'staff', 'teacher'],
+  deputy_director: ['deputy_director', 'planning_officer', 'head_dept', 'staff', 'teacher'],
+  planning_officer: ['planning_officer', 'staff', 'teacher'],
+  head_dept: ['head_dept', 'teacher'],
+};
+
 export function isUserAuthorizedForService(userRoles: string[], serviceAllowedRoles: string[]): boolean {
   // If service has no specific roles assigned or explicitly allows 'guest', it is public to everyone
   if (!serviceAllowedRoles || serviceAllowedRoles.length === 0 || serviceAllowedRoles.includes('guest')) {
-    // However, if user is guest/unauthenticated, they can ONLY see services that allow guest or have no restrictions
     return true;
   }
 
@@ -103,5 +169,14 @@ export function isUserAuthorizedForService(userRoles: string[], serviceAllowedRo
     return true;
   }
 
-  return serviceAllowedRoles.some((role) => userRoles.includes(role));
+  // Expand organizational roles from Plan so personnel can access baseline internal services
+  const effectiveRoles = new Set<string>(userRoles);
+  for (const r of userRoles) {
+    const inherited = ROLE_INHERITANCE[r];
+    if (inherited) {
+      inherited.forEach((ir) => effectiveRoles.add(ir));
+    }
+  }
+
+  return serviceAllowedRoles.some((role) => effectiveRoles.has(role));
 }

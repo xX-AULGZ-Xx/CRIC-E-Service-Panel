@@ -376,6 +376,10 @@ export default function AdminIntegrationManager() {
                 onChange={(e) => setSimRole(e.target.value as UserRole)}
                 className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-xs sm:text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-black transition-all"
               >
+                <option value="director">ผู้อำนวยการ (Director)</option>
+                <option value="deputy_director">รองผู้อำนวยการ (Deputy Director)</option>
+                <option value="planning_officer">งานวางแผนฯ (Planning Officer)</option>
+                <option value="head_dept">หัวหน้าแผนก/งาน (Head Dept)</option>
                 <option value="teacher">อาจารย์ผู้สอน (Teacher - อ.ประเสริฐ)</option>
                 <option value="staff">เจ้าหน้าที่ (Staff - สุนีย์)</option>
                 <option value="student">นักศึกษา (Student - สมชาย)</option>

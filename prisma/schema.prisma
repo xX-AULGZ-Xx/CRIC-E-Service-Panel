@@ -89,20 +89,62 @@ model SystemSetting {
   @@map("system_settings")
 }
 
+model Division {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  name        String
+  externalId  Int?         @unique
+  departments Department[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("divisions")
+}
+
+model Department {
+  id          String           @id @default(cuid())
+  divisionId  String
+  division    Division         @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  name        String
+  externalId  Int?             @unique
+  users       UserDepartment[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("departments")
+}
+
+model UserDepartment {
+  id           String     @id @default(cuid())
+  userId       String
+  departmentId String
+  isHead       Boolean    @default(false)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, departmentId])
+  @@map("user_departments")
+}
+
 model User {
-  id           String    @id @default(cuid())
-  username     String    @unique
-  email        String    @unique
-  passwordHash String?
-  displayName  String
-  department   String?
-  role         String    @default("student") // admin | teacher | staff | student
-  avatarUrl    String?
-  isActive     Boolean   @default(true)
-  authProvider String    @default("local") // local | google
-  lastLoginAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String           @id @default(cuid())
+  username      String           @unique
+  email         String           @unique
+  passwordHash  String?
+  displayName   String
+  department    String?
+  position      String?
+  personnelType String?          @default("STAFF") // TEACHER | STAFF | STUDENT
+  role          String           @default("student") // admin | director | deputy_director | planning_officer | head_dept | teacher | staff | student
+  avatarUrl     String?
+  isActive      Boolean          @default(true)
+  authProvider  String           @default("local") // local | google | keycloak
+  sourceSystem  String?          @default("local") // local | plan | rcms
+  externalId    String?
+  lastLoginAt   DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  departments   UserDepartment[]
 
   @@map("users")
 }

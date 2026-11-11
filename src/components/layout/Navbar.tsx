@@ -118,6 +118,14 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
     switch (role) {
       case 'admin':
         return { label: 'Admin', color: 'bg-rose-500/10 text-rose-500 dark:text-rose-400 border-rose-500/30', icon: ShieldAlert };
+      case 'director':
+        return { label: 'ผู้อำนวยการ', color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30', icon: ShieldAlert };
+      case 'deputy_director':
+        return { label: 'รองผู้อำนวยการ', color: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/30', icon: Briefcase };
+      case 'planning_officer':
+        return { label: 'งานวางแผนฯ', color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30', icon: Briefcase };
+      case 'head_dept':
+        return { label: 'หัวหน้าแผนก/งาน', color: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30', icon: UserCheck };
       case 'teacher':
         return { label: 'Teacher', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30', icon: GraduationCap };
       case 'staff':

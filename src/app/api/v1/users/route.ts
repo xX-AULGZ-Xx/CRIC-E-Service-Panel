@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUserSession } from '@/lib/auth';
+import { ALL_USER_ROLES, getCurrentUserSession } from '@/lib/auth';
 import { 
   getAllUsers, 
   hashUserPassword, 
   readLocalUsers, 
   writeLocalUsers, 
   sanitizeUser,
+  saveUserDepartments,
   UserEntity 
 } from '@/lib/users';
 import { UserRole } from '@/types/service';
@@ -55,18 +56,30 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { username, email, password, displayName, department, role, avatarUrl } = body;
+    const {
+      username,
+      email,
+      password,
+      displayName,
+      department,
+      position,
+      personnelType,
+      departmentIds,
+      headDeptIds,
+      role,
+      avatarUrl,
+    } = body;
 
-    if (!username || !email || !displayName) {
+    if (!username || !displayName) {
       return NextResponse.json(
-        { success: false, error: 'กรุณากรอก Username, Email และชื่อ-นามสกุลให้ครบถ้วน' },
+        { success: false, error: 'กรุณากรอก Username และชื่อ-นามสกุลให้ครบถ้วน' },
         { status: 400 }
       );
     }
 
     const cleanUsername = username.trim().toLowerCase();
-    const cleanEmail = email.trim().toLowerCase();
-    const targetRole: UserRole = ['admin', 'teacher', 'staff', 'student'].includes(role) ? role : 'student';
+    const cleanEmail = (email && String(email).trim() ? String(email).trim() : `${cleanUsername}@cric.ac.th`).toLowerCase();
+    const targetRole: UserRole = ALL_USER_ROLES.includes(role as UserRole) ? (role as UserRole) : 'student';
 
     // Check duplicate username or email in DB
     try {
@@ -121,10 +134,35 @@ export async function POST(req: NextRequest) {
           passwordHash,
           displayName: displayName.trim(),
           department: department ? department.trim() : null,
+          position: position ? position.trim() : null,
+          personnelType: personnelType ? String(personnelType).trim() : null,
+          sourceSystem: 'panel',
           role: targetRole,
           avatarUrl: avatarUrl || null,
           isActive: true,
           authProvider: 'local',
+        },
+      });
+
+      if (Array.isArray(departmentIds)) {
+        await saveUserDepartments(
+          createdUser.id,
+          departmentIds,
+          Array.isArray(headDeptIds) ? headDeptIds : [],
+          department ? department.trim() : null
+        );
+      }
+
+      createdUser = await prisma.user.findUnique({
+        where: { id: createdUser.id },
+        include: {
+          departments: {
+            include: {
+              department: {
+                include: { division: true },
+              },
+            },
+          },
         },
       });
     } catch (e: any) {
@@ -136,6 +174,9 @@ export async function POST(req: NextRequest) {
         passwordHash,
         displayName: displayName.trim(),
         department: department ? department.trim() : null,
+        position: position ? position.trim() : null,
+        personnelType: personnelType ? String(personnelType).trim() : null,
+        sourceSystem: 'panel',
         role: targetRole,
         avatarUrl: avatarUrl || null,
         isActive: true,

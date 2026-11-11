@@ -25,7 +25,10 @@ import {
   Check,
   Globe
 } from 'lucide-react';
-import { UserAccount, UserRole } from '@/types/service';
+import { UserAccount, UserRole, DivisionItem } from '@/types/service';
+import { Crown, Server, Building2 } from 'lucide-react';
+import PlanUserFormModal from './PlanUserFormModal';
+import PlanImportModal from './PlanImportModal';
 
 export default function AdminUsersManager() {
   const [users, setUsers] = useState<UserAccount[]>([]);
@@ -84,8 +87,26 @@ export default function AdminUsersManager() {
     }
   };
 
+  const [divisions, setDivisions] = useState<DivisionItem[]>([]);
+  const [selectedDivisionId, setSelectedDivisionId] = useState<string>('all');
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('all');
+  const [isImportOpen, setIsImportOpen] = useState(false);
+
+  const fetchDivisions = async () => {
+    try {
+      const res = await fetch('/api/v1/divisions');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setDivisions(data.data);
+      }
+    } catch {
+      // Ignore if divisions not ready
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchDivisions();
   }, []);
 
   const showNotification = (text: string, type: 'success' | 'error' = 'success') => {
@@ -98,6 +119,16 @@ export default function AdminUsersManager() {
     return users.filter((u) => {
       // Role filter
       if (selectedRole !== 'all' && u.role !== selectedRole) return false;
+      // Division filter
+      if (selectedDivisionId !== 'all') {
+        const hasDiv = (u.departments || []).some((d) => d.department?.divisionId === selectedDivisionId);
+        if (!hasDiv) return false;
+      }
+      // Department filter
+      if (selectedDepartmentId !== 'all') {
+        const hasDept = (u.departments || []).some((d) => d.departmentId === selectedDepartmentId);
+        if (!hasDept) return false;
+      }
       // Status filter
       if (selectedStatus === 'active' && !u.isActive) return false;
       if (selectedStatus === 'suspended' && u.isActive) return false;
@@ -107,18 +138,38 @@ export default function AdminUsersManager() {
         const nameMatch = u.displayName.toLowerCase().includes(q);
         const emailMatch = u.email.toLowerCase().includes(q);
         const userMatch = u.username.toLowerCase().includes(q);
+        const posMatch = u.position?.toLowerCase().includes(q) || false;
         const deptMatch = u.department?.toLowerCase().includes(q) || false;
-        if (!nameMatch && !emailMatch && !userMatch && !deptMatch) return false;
+        const assignedDeptMatch = (u.departments || []).some(
+          (d) =>
+            (d.department?.name || '').toLowerCase().includes(q) ||
+            (d.department?.division?.name || '').toLowerCase().includes(q)
+        );
+        if (!nameMatch && !emailMatch && !userMatch && !posMatch && !deptMatch && !assignedDeptMatch) {
+          return false;
+        }
       }
       return true;
     });
-  }, [users, selectedRole, selectedStatus, searchQuery]);
+  }, [users, selectedRole, selectedDivisionId, selectedDepartmentId, selectedStatus, searchQuery]);
+
+  // Available departments based on selected division filter
+  const filterDepartments = useMemo(() => {
+    if (selectedDivisionId === 'all') {
+      return divisions.flatMap((d) => d.departments || []);
+    }
+    const found = divisions.find((d) => d.id === selectedDivisionId);
+    return found?.departments || [];
+  }, [divisions, selectedDivisionId]);
 
   // Statistics
   const stats = useMemo(() => {
     return {
       total: users.length,
       admin: users.filter((u) => u.role === 'admin').length,
+      management: users.filter((u) =>
+        ['director', 'deputy_director', 'planning_officer', 'head_dept'].includes(u.role)
+      ).length,
       teacher: users.filter((u) => u.role === 'teacher').length,
       staff: users.filter((u) => u.role === 'staff').length,
       student: users.filter((u) => u.role === 'student').length,
@@ -321,25 +372,53 @@ export default function AdminUsersManager() {
             <span>Admin</span>
           </span>
         );
+      case 'director':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+            <ShieldAlert className="w-3 h-3" />
+            <span>ผู้อำนวยการ</span>
+          </span>
+        );
+      case 'deputy_director':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/30">
+            <Briefcase className="w-3 h-3" />
+            <span>รองผู้อำนวยการ</span>
+          </span>
+        );
+      case 'planning_officer':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+            <Briefcase className="w-3 h-3" />
+            <span>งานวางแผนฯ</span>
+          </span>
+        );
+      case 'head_dept':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30">
+            <Crown className="w-3 h-3" />
+            <span>หัวหน้าแผนก/งาน</span>
+          </span>
+        );
       case 'teacher':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
             <GraduationCap className="w-3 h-3" />
-            <span>Teacher</span>
+            <span>ครู / ผู้สอน</span>
           </span>
         );
       case 'staff':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30">
             <Briefcase className="w-3 h-3" />
-            <span>Staff</span>
+            <span>บุคลากร (Staff)</span>
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30">
             <UserCheck className="w-3 h-3" />
-            <span>Student</span>
+            <span>นักศึกษา</span>
           </span>
         );
     }
@@ -374,19 +453,24 @@ export default function AdminUsersManager() {
       )}
 
       {/* Top Stat Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         <div className="p-4 rounded-2xl bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 shadow-sm">
           <div className="text-xs text-neutral-500 dark:text-neutral-400">ผู้ใช้ทั้งหมด</div>
           <div className="text-2xl font-bold text-neutral-900 dark:text-white mt-1">{stats.total}</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 shadow-sm">
-          <div className="text-xs text-rose-500">ผู้ดูแลระบบ (Admin)</div>
+          <div className="text-xs text-rose-500">ผู้ดูแลระบบ</div>
           <div className="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{stats.admin}</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 shadow-sm">
-          <div className="text-xs text-emerald-500">อาจารย์ (Teacher)</div>
+          <div className="text-xs text-violet-500">ผู้บริหาร / หัวหน้า</div>
+          <div className="text-2xl font-bold text-violet-600 dark:text-violet-400 mt-1">{stats.management}</div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 shadow-sm">
+          <div className="text-xs text-emerald-500">ครู / อาจารย์</div>
           <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{stats.teacher}</div>
         </div>
 
@@ -396,32 +480,67 @@ export default function AdminUsersManager() {
         </div>
 
         <div className="p-4 rounded-2xl bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 shadow-sm">
-          <div className="text-xs text-blue-500">นักศึกษา (Student)</div>
+          <div className="text-xs text-blue-500">นักศึกษา</div>
           <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.student}</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 shadow-sm">
-          <div className="text-xs text-emerald-600 dark:text-emerald-400">เปิดใช้งาน (Active)</div>
+          <div className="text-xs text-emerald-600 dark:text-emerald-400">เปิดใช้งาน</div>
           <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{stats.active}</div>
         </div>
       </div>
 
       {/* Action Bar: Search, Filters, and Action Buttons */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+      <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
         {/* Search Input */}
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 min-w-[240px] max-w-md">
           <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="ค้นหาชื่อ, username, อีเมล หรือแผนก..."
+            placeholder="ค้นหาชื่อ, username, ตำแหน่ง, อีเมล หรือแผนก..."
             className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 rounded-xl text-xs sm:text-sm text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all"
           />
         </div>
 
-        {/* Right buttons: Role filters, Export CSV, Add User */}
+        {/* Right buttons: Division/Dept/Status filters, Import Plan, Export CSV, Add User */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Division Filter */}
+          {divisions.length > 0 && (
+            <select
+              value={selectedDivisionId}
+              onChange={(e) => {
+                setSelectedDivisionId(e.target.value);
+                setSelectedDepartmentId('all');
+              }}
+              className="px-3 py-2 bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 rounded-xl text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm max-w-[180px]"
+            >
+              <option value="all">ทุกฝ่ายงาน</option>
+              {divisions.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {/* Department Filter */}
+          {filterDepartments.length > 0 && (
+            <select
+              value={selectedDepartmentId}
+              onChange={(e) => setSelectedDepartmentId(e.target.value)}
+              className="px-3 py-2 bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 rounded-xl text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm max-w-[200px]"
+            >
+              <option value="all">ทุกแผนกวิชา / งาน</option>
+              {filterDepartments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          )}
+
           {/* Status Filter */}
           <select
             value={selectedStatus}
@@ -432,6 +551,17 @@ export default function AdminUsersManager() {
             <option value="active">เปิดใช้งาน (Active)</option>
             <option value="suspended">ระงับการใช้งาน (Suspended)</option>
           </select>
+
+          {/* Import from Plan Button */}
+          <button
+            type="button"
+            onClick={() => setIsImportOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-sm transition-all hover:scale-[1.01]"
+            title="นำเข้าผู้ใช้และฝ่าย/แผนกจากระบบ Plan"
+          >
+            <Server className="w-3.5 h-3.5" />
+            <span>นำเข้าจากระบบ Plan</span>
+          </button>
 
           {/* Export CSV */}
           <button
@@ -447,7 +577,10 @@ export default function AdminUsersManager() {
           {/* Refresh button */}
           <button
             type="button"
-            onClick={fetchUsers}
+            onClick={() => {
+              fetchUsers();
+              fetchDivisions();
+            }}
             disabled={loading}
             className="p-2 bg-white dark:bg-[#141517] hover:bg-neutral-50 dark:hover:bg-neutral-850 border border-neutral-200 dark:border-neutral-800 rounded-xl text-neutral-700 dark:text-neutral-300 transition-colors shadow-sm disabled:opacity-50"
             title="รีเฟรชข้อมูล"
@@ -458,7 +591,10 @@ export default function AdminUsersManager() {
           {/* Add User Button */}
           <button
             type="button"
-            onClick={() => setIsAddOpen(true)}
+            onClick={() => {
+              setActiveUser(null);
+              setIsAddOpen(true);
+            }}
             className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
@@ -469,21 +605,29 @@ export default function AdminUsersManager() {
 
       {/* Role Tabs */}
       <div className="flex items-center gap-1.5 border-b border-neutral-200 dark:border-neutral-800 pb-2 overflow-x-auto">
-        {(['all', 'admin', 'teacher', 'staff', 'student'] as const).map((r) => (
+        {(
+          [
+            { key: 'all', label: 'ทั้งหมด' },
+            { key: 'director', label: 'ผู้อำนวยการ' },
+            { key: 'deputy_director', label: 'รองผู้อำนวยการ' },
+            { key: 'planning_officer', label: 'งานวางแผนฯ' },
+            { key: 'head_dept', label: 'หัวหน้าแผนก/งาน' },
+            { key: 'teacher', label: 'ครู / ผู้สอน' },
+            { key: 'staff', label: 'บุคลากร (Staff)' },
+            { key: 'student', label: 'นักศึกษา' },
+            { key: 'admin', label: 'ผู้ดูแลระบบ' },
+          ] as const
+        ).map((tab) => (
           <button
-            key={r}
-            onClick={() => setSelectedRole(r)}
+            key={tab.key}
+            onClick={() => setSelectedRole(tab.key)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-              selectedRole === r
+              selectedRole === tab.key
                 ? 'bg-neutral-900 dark:bg-white text-white dark:text-black font-semibold'
                 : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
             }`}
           >
-            {r === 'all' && 'ทั้งหมด'}
-            {r === 'admin' && 'ผู้ดูแลระบบ (Admin)'}
-            {r === 'teacher' && 'อาจารย์ (Teacher)'}
-            {r === 'staff' && 'บุคลากร (Staff)'}
-            {r === 'student' && 'นักศึกษา (Student)'}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -531,15 +675,27 @@ export default function AdminUsersManager() {
                           )}
                         </div>
                         <div>
-                          <div className="font-semibold text-neutral-900 dark:text-white flex items-center gap-1.5">
+                          <div className="font-semibold text-neutral-900 dark:text-white flex items-center flex-wrap gap-1.5">
                             <span>{u.displayName}</span>
+                            {u.sourceSystem === 'plan' && (
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-medium">
+                                Plan
+                              </span>
+                            )}
                             {!u.isActive && (
                               <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                                 ระงับ
                               </span>
                             )}
                           </div>
-                          <div className="text-[11px] font-mono text-neutral-500">@{u.username}</div>
+                          <div className="text-[11px] font-mono text-neutral-500 flex items-center flex-wrap gap-1.5">
+                            <span>@{u.username}</span>
+                            {u.position && (
+                              <span className="font-sans text-neutral-500 dark:text-neutral-400">
+                                • {u.position}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -547,10 +703,30 @@ export default function AdminUsersManager() {
                     {/* Email / Dept */}
                     <td className="py-3.5 px-4">
                       <div className="text-neutral-900 dark:text-neutral-200">{u.email}</div>
-                      <div className="text-[11px] text-neutral-500 flex items-center gap-1 mt-0.5">
-                        <Building className="w-3 h-3 text-neutral-400 shrink-0" />
-                        <span>{u.department || 'ไม่ระบุแผนก'}</span>
-                      </div>
+                      {u.departments && u.departments.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {u.departments.map((d) => (
+                            <span
+                              key={d.departmentId}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border ${
+                                d.isHead
+                                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                                  : 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700'
+                              }`}
+                              title={d.department?.division?.name || ''}
+                            >
+                              {d.isHead ? <Crown className="w-2.5 h-2.5 shrink-0" /> : <Building2 className="w-2.5 h-2.5 shrink-0" />}
+                              <span>{d.department?.name || d.departmentId}</span>
+                              {d.isHead && <span className="font-bold">(หัวหน้าฯ)</span>}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-[11px] text-neutral-500 flex items-center gap-1 mt-0.5">
+                          <Building className="w-3 h-3 text-neutral-400 shrink-0" />
+                          <span>{u.department || 'ไม่ระบุแผนก'}</span>
+                        </div>
+                      )}
                     </td>
 
                     {/* Role */}
@@ -616,13 +792,6 @@ export default function AdminUsersManager() {
                           type="button"
                           onClick={() => {
                             setActiveUser(u);
-                            setEditForm({
-                              displayName: u.displayName,
-                              email: u.email,
-                              department: u.department || '',
-                              role: u.role,
-                              isActive: u.isActive,
-                            });
                             setIsEditOpen(true);
                           }}
                           className="p-1.5 rounded-lg text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
@@ -653,246 +822,34 @@ export default function AdminUsersManager() {
         )}
       </div>
 
-      {/* Modal: Add User */}
-      {isAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-neutral-800">
-              <h3 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                <Plus className="w-5 h-5 text-blue-500" />
-                <span>เพิ่มผู้ใช้งานใหม่</span>
-              </h3>
-              <button
-                onClick={() => setIsAddOpen(false)}
-                className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* Unified Add / Edit User Modal (Plan-Compatible Personnel + Student) */}
+      <PlanUserFormModal
+        isOpen={isAddOpen || isEditOpen}
+        mode={isEditOpen ? 'edit' : 'add'}
+        activeUser={activeUser}
+        divisions={divisions}
+        onClose={() => {
+          setIsAddOpen(false);
+          setIsEditOpen(false);
+          setActiveUser(null);
+        }}
+        onSuccess={(msg) => {
+          showNotification(msg, 'success');
+          fetchUsers();
+        }}
+        onError={(errMsg) => showNotification(errMsg, 'error')}
+      />
 
-            <form onSubmit={handleAddSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                  ชื่อ-นามสกุล *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={addForm.displayName}
-                  onChange={(e) => setAddForm({ ...addForm, displayName: e.target.value })}
-                  placeholder="เช่น สมชาย ใจดี"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                    ชื่อผู้ใช้งาน (Username) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={addForm.username}
-                    onChange={(e) => setAddForm({ ...addForm, username: e.target.value })}
-                    placeholder="เช่น somchai.j"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                    อีเมล (Email) *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={addForm.email}
-                    onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
-                    placeholder="somchai@cric.ac.th"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                  รหัสผ่านเริ่มต้น (Password) *
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={addForm.password}
-                  onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
-                  placeholder="ความยาวอย่างน้อย 6 ตัวอักษร"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                    บทบาท (Role) *
-                  </label>
-                  <select
-                    value={addForm.role}
-                    onChange={(e) => setAddForm({ ...addForm, role: e.target.value as UserRole })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="student">นักศึกษา (Student)</option>
-                    <option value="teacher">อาจารย์ (Teacher)</option>
-                    <option value="staff">บุคลากร / เจ้าหน้าที่ (Staff)</option>
-                    <option value="admin">ผู้ดูแลระบบ (Admin)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                    แผนก / สาขาวิชา
-                  </label>
-                  <input
-                    type="text"
-                    value={addForm.department}
-                    onChange={(e) => setAddForm({ ...addForm, department: e.target.value })}
-                    placeholder="เช่น แผนกเทคโนโลยีสารสนเทศ"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsAddOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-600/30 transition-all disabled:opacity-50"
-                >
-                  {submitting ? 'กำลังบันทึก...' : 'บันทึกผู้ใช้ใหม่'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal: Edit User */}
-      {isEditOpen && activeUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white dark:bg-[#141517] border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-neutral-800">
-              <h3 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-blue-500" />
-                <span>แก้ไขข้อมูลผู้ใช้งาน (@{activeUser.username})</span>
-              </h3>
-              <button
-                onClick={() => setIsEditOpen(false)}
-                className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                  ชื่อ-นามสกุล *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editForm.displayName}
-                  onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                  อีเมล (Email) *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={editForm.email}
-                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                    บทบาท (Role) *
-                  </label>
-                  <select
-                    value={editForm.role}
-                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value as UserRole })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="student">นักศึกษา (Student)</option>
-                    <option value="teacher">อาจารย์ (Teacher)</option>
-                    <option value="staff">บุคลากร / เจ้าหน้าที่ (Staff)</option>
-                    <option value="admin">ผู้ดูแลระบบ (Admin)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                    แผนก / สาขาวิชา
-                  </label>
-                  <input
-                    type="text"
-                    value={editForm.department}
-                    onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-medium text-neutral-900 dark:text-white">สถานะการใช้งานบัญชี</div>
-                  <div className="text-[11px] text-neutral-500">
-                    {editForm.isActive ? 'ผู้ใช้สามารถล็อกอินเข้าสู่ระบบได้ปกติ' : 'ผู้ใช้จะถูกบล็อกไม่ให้เข้าสู่ระบบ'}
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editForm.isActive}
-                    onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
-                    className="sr-only peer"
-                  />
-                  <div className="w-10 h-6 bg-neutral-300 dark:bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                </label>
-              </div>
-
-              <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-600/30 transition-all disabled:opacity-50"
-                >
-                  {submitting ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Hybrid Plan Import Wizard Modal */}
+      <PlanImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        onSuccess={(msg) => {
+          showNotification(msg, 'success');
+          fetchUsers();
+          fetchDivisions();
+        }}
+      />
 
       {/* Modal: Reset Password */}
       {isPasswordOpen && activeUser && (

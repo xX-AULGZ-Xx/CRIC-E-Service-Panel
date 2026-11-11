@@ -1,4 +1,13 @@
-export type UserRole = 'student' | 'teacher' | 'staff' | 'admin' | 'guest';
+export type UserRole =
+  | 'admin'
+  | 'director'
+  | 'deputy_director'
+  | 'planning_officer'
+  | 'head_dept'
+  | 'teacher'
+  | 'staff'
+  | 'student'
+  | 'guest';
 
 export interface ServiceItem {
   id: string;
@@ -75,17 +84,46 @@ export interface SystemSetting {
   updatedAt?: string | Date;
 }
 
+export interface DivisionItem {
+  id: string;
+  code: string;
+  name: string;
+  externalId?: number | null;
+  departments?: DepartmentItem[];
+}
+
+export interface DepartmentItem {
+  id: string;
+  divisionId: string;
+  name: string;
+  externalId?: number | null;
+  division?: DivisionItem;
+}
+
+export interface UserDepartmentAssignment {
+  id: string;
+  userId: string;
+  departmentId: string;
+  isHead: boolean;
+  department?: DepartmentItem;
+}
+
 export interface UserAccount {
   id: string;
   username: string;
   email: string;
   displayName: string;
   department: string | null;
+  position?: string | null;
+  personnelType?: 'TEACHER' | 'STAFF' | 'STUDENT' | string | null;
   role: UserRole;
   avatarUrl: string | null;
   isActive: boolean;
-  authProvider: 'local' | 'google';
+  authProvider: 'local' | 'google' | 'keycloak';
+  sourceSystem?: string | null;
+  externalId?: string | null;
   lastLoginAt: string | Date | null;
   createdAt: string | Date;
   updatedAt: string | Date;
+  departments?: UserDepartmentAssignment[];
 }

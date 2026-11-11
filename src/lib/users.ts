@@ -1,11 +1,25 @@
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
 import { UserRole } from '@/types/service';
 
 export function hashUserPassword(password: string): string {
   return crypto.createHash('sha256').update(password.trim()).digest('hex');
+}
+
+export function verifyUserPassword(plainPassword: string, storedHash: string | null | undefined): boolean {
+  if (!storedHash || !plainPassword) return false;
+  // Support bcryptjs hashes imported from Plan system ($2a$, $2b$, $2y$)
+  if (/^\$2[aby]\$\d+\$/.test(storedHash)) {
+    try {
+      return bcrypt.compareSync(plainPassword, storedHash);
+    } catch {
+      return false;
+    }
+  }
+  return hashUserPassword(plainPassword) === storedHash;
 }
 
 export interface UserEntity {
@@ -15,13 +29,18 @@ export interface UserEntity {
   passwordHash: string | null;
   displayName: string;
   department: string | null;
+  position?: string | null;
+  personnelType?: string | null;
   role: UserRole;
   avatarUrl: string | null;
   isActive: boolean;
   authProvider: 'local' | 'google' | 'keycloak';
+  sourceSystem?: string | null;
+  externalId?: string | null;
   lastLoginAt: Date | string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
+  departments?: any[];
 }
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -142,9 +161,10 @@ export async function seedInitialUsers(): Promise<void> {
 
     try {
       for (const u of initialUsers) {
+        const { departments: _departments, ...userData } = u;
         await prisma.user.create({
           data: {
-            ...u,
+            ...userData,
             role: u.role as string,
           },
         });
@@ -192,6 +212,17 @@ export async function getAllUsers(filter?: { search?: string; role?: string; sta
     const users = await prisma.user.findMany({
       where,
       orderBy: { createdAt: 'desc' },
+      include: {
+        departments: {
+          include: {
+            department: {
+              include: {
+                division: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return users.map(sanitizeUser);
@@ -268,5 +299,98 @@ export async function recordUserLogin(userId: string) {
       local[idx].lastLoginAt = new Date();
       await writeLocalUsers(local);
     }
+  }
+}
+
+const DEFAULT_DIVISIONS = [
+  {
+    code: 'ACAD',
+    name: 'ฝ่ายวิชาการ',
+    departments: ['แผนกวิชาเทคโนโลยีสารสนเทศ', 'แผนกวิชาการบัญชี', 'แผนกวิชาช่างไฟฟ้ากำลัง', 'งานหลักสูตรการเรียนการสอน'],
+  },
+  {
+    code: 'RES',
+    name: 'ฝ่ายบริหารทรัพยากร',
+    departments: ['งานการเงินและบัญชี', 'งานบุคลากร', 'งานพัสดุ', 'งานสารบรรณ'],
+  },
+  {
+    code: 'DEV',
+    name: 'ฝ่ายพัฒนากิจการนักเรียน นักศึกษา',
+    departments: ['งานกิจกรรมนักเรียนนักศึกษา', 'งานปกครอง', 'งานแนะแนวอาชีพและจัดหางาน'],
+  },
+  {
+    code: 'STRAT',
+    name: 'ฝ่ายแผนงานและความร่วมมือ',
+    departments: ['งานวางแผนและงบประมาณ', 'งานศูนย์ข้อมูลสารสนเทศ', 'งานวิจัย พัฒนานวัตกรรมและสิ่งประดิษฐ์'],
+  },
+];
+
+export async function ensureDivisionsSeeded() {
+  try {
+    const count = await prisma.division.count();
+    if (count > 0) return;
+
+    for (const div of DEFAULT_DIVISIONS) {
+      const createdDiv = await prisma.division.upsert({
+        where: { code: div.code },
+        update: {},
+        create: {
+          code: div.code,
+          name: div.name,
+        },
+      });
+
+      for (const deptName of div.departments) {
+        await prisma.department.create({
+          data: {
+            divisionId: createdDiv.id,
+            name: deptName,
+          },
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('ensureDivisionsSeeded failed:', e);
+  }
+}
+
+export async function saveUserDepartments(
+  userId: string,
+  departmentIds: string[],
+  headDeptIds: string[] = [],
+  fallbackSummary?: string | null
+) {
+  const uniqueDeptIds = Array.from(new Set(departmentIds.filter(Boolean)));
+  const headSet = new Set(headDeptIds.filter(Boolean));
+
+  await prisma.userDepartment.deleteMany({
+    where: { userId },
+  });
+
+  if (uniqueDeptIds.length > 0) {
+    await prisma.userDepartment.createMany({
+      data: uniqueDeptIds.map((deptId) => ({
+        userId,
+        departmentId: deptId,
+        isHead: headSet.has(deptId),
+      })),
+      skipDuplicates: true,
+    });
+
+    const depts = await prisma.department.findMany({
+      where: { id: { in: uniqueDeptIds } },
+      select: { name: true },
+    });
+    const summary = depts.map((d) => d.name).join(', ');
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { department: summary || fallbackSummary || null },
+    });
+  } else if (fallbackSummary !== undefined) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { department: fallbackSummary || null },
+    });
   }
 }
