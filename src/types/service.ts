@@ -42,7 +42,7 @@ export interface UserSession {
   userId: string;
   username: string;
   displayName: string;
-  email: string;
+  email: string | null;
   avatarUrl?: string;
   roles: UserRole[];
   currentRole: UserRole;
@@ -111,7 +111,7 @@ export interface UserDepartmentAssignment {
 export interface UserAccount {
   id: string;
   username: string;
-  email: string;
+  email: string | null;
   displayName: string;
   department: string | null;
   position?: string | null;

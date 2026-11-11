@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
         });
       } catch {
         const local = await readLocalUsers();
-        const idx = local.findIndex((u) => u.email.toLowerCase() === email);
+        const idx = local.findIndex((u) => (u.email || '').toLowerCase() === email);
         if (idx !== -1) {
           local[idx].displayName = name || local[idx].displayName;
           local[idx].avatarUrl = picture || local[idx].avatarUrl;

@@ -230,7 +230,7 @@ export default function PlanUserFormModal({
       const payload: Record<string, any> = {
         username: username.trim().toLowerCase(),
         displayName: displayName.trim(),
-        email: email.trim().toLowerCase() || `${username.trim().toLowerCase()}@cric.ac.th`,
+        email: email.trim().toLowerCase() || null,
         role: effectiveRole,
         isActive,
       };
@@ -473,7 +473,7 @@ export default function PlanUserFormModal({
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="ปล่อยว่างเพื่อใช้ @cric.ac.th"
+                      placeholder="ไม่บังคับ (เว้นว่างได้หากไม่มีอีเมล)"
                       className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -738,7 +738,7 @@ export default function PlanUserFormModal({
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="6720101001@cric.ac.th"
+                    placeholder="ไม่บังคับ (เช่น 6720101001@cric.ac.th หรือเว้นว่าง)"
                     className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-sm font-mono text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>

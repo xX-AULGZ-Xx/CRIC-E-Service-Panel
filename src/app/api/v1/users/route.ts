@@ -78,17 +78,16 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanUsername = username.trim().toLowerCase();
-    const cleanEmail = (email && String(email).trim() ? String(email).trim() : `${cleanUsername}@cric.ac.th`).toLowerCase();
+    const cleanEmail = email && String(email).trim() ? String(email).trim().toLowerCase() : null;
     const targetRole: UserRole = ALL_USER_ROLES.includes(role as UserRole) ? (role as UserRole) : 'student';
 
     // Check duplicate username or email in DB
     try {
       const existing = await prisma.user.findFirst({
         where: {
-          OR: [
-            { username: cleanUsername },
-            { email: cleanEmail },
-          ],
+          OR: cleanEmail
+            ? [{ username: cleanUsername }, { email: cleanEmail }]
+            : [{ username: cleanUsername }],
         },
       });
 
@@ -99,7 +98,7 @@ export async function POST(req: NextRequest) {
             { status: 400 }
           );
         }
-        if (existing.email.toLowerCase() === cleanEmail) {
+        if (cleanEmail && (existing.email || '').toLowerCase() === cleanEmail) {
           return NextResponse.json(
             { success: false, error: `อีเมล "${cleanEmail}" มีอยู่ในระบบแล้ว` },
             { status: 400 }
@@ -115,7 +114,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      if (local.some((u) => u.email.toLowerCase() === cleanEmail)) {
+      if (cleanEmail && local.some((u) => (u.email || '').toLowerCase() === cleanEmail)) {
         return NextResponse.json(
           { success: false, error: `อีเมล "${cleanEmail}" มีอยู่ในระบบแล้ว` },
           { status: 400 }

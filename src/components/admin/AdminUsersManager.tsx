@@ -136,7 +136,7 @@ export default function AdminUsersManager() {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const nameMatch = u.displayName.toLowerCase().includes(q);
-        const emailMatch = u.email.toLowerCase().includes(q);
+        const emailMatch = (u.email || '').toLowerCase().includes(q);
         const userMatch = u.username.toLowerCase().includes(q);
         const posMatch = u.position?.toLowerCase().includes(q) || false;
         const deptMatch = u.department?.toLowerCase().includes(q) || false;
@@ -342,7 +342,7 @@ export default function AdminUsersManager() {
       `"${u.id}"`,
       `"${u.username}"`,
       `"${u.displayName}"`,
-      `"${u.email}"`,
+      `"${u.email || '-'}"`,
       `"${u.department || '-'}"`,
       `"${u.role}"`,
       `"${u.authProvider}"`,
@@ -702,7 +702,11 @@ export default function AdminUsersManager() {
 
                     {/* Email / Dept */}
                     <td className="py-3.5 px-4">
-                      <div className="text-neutral-900 dark:text-neutral-200">{u.email}</div>
+                      {u.email ? (
+                        <div className="text-neutral-900 dark:text-neutral-200">{u.email}</div>
+                      ) : (
+                        <div className="text-xs italic text-neutral-400 dark:text-neutral-500">ไม่มีอีเมล</div>
+                      )}
                       {u.departments && u.departments.length > 0 ? (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {u.departments.map((d) => (
@@ -939,7 +943,7 @@ export default function AdminUsersManager() {
             <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-xs space-y-1">
               <div><strong className="text-neutral-900 dark:text-white">ชื่อ:</strong> {activeUser.displayName}</div>
               <div><strong className="text-neutral-900 dark:text-white">Username:</strong> @{activeUser.username}</div>
-              <div><strong className="text-neutral-900 dark:text-white">อีเมล:</strong> {activeUser.email}</div>
+              <div><strong className="text-neutral-900 dark:text-white">อีเมล:</strong> {activeUser.email || 'ไม่มีอีเมล'}</div>
               <div><strong className="text-neutral-900 dark:text-white">บทบาท:</strong> {activeUser.role}</div>
             </div>
 

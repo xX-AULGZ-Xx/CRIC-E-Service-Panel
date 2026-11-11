@@ -25,8 +25,8 @@ interface PreviewUserItem {
   planId: string;
   username: string;
   fullName: string;
-  email: string;
-  autoEmail: boolean;
+  email: string | null;
+  autoEmail?: boolean;
   role: UserRole;
   planRole: string;
   position?: string | null;
@@ -470,11 +470,10 @@ export default function PlanImportModal({ isOpen, onClose, onSuccess }: PlanImpo
                             <div className="font-semibold text-neutral-900 dark:text-white">{item.fullName}</div>
                             <div className="text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
                               <span>@{item.username}</span>
-                              <span>• {item.email}</span>
-                              {item.autoEmail && (
-                                <span className="px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-sans text-[10px]">
-                                  Auto Email
-                                </span>
+                              {item.email ? (
+                                <span>• {item.email}</span>
+                              ) : (
+                                <span className="font-sans italic text-neutral-400">• ไม่มีอีเมล</span>
                               )}
                             </div>
                           </td>

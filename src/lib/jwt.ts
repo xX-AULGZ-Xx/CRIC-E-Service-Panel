@@ -24,7 +24,7 @@ function base64UrlDecode(str: string): string {
 }
 
 export interface CricssoPayload {
-  email: string;
+  email?: string | null;
   name: string;
   username: string;
   role: string;

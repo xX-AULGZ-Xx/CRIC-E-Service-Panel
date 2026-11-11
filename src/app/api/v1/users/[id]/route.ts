@@ -101,7 +101,7 @@ export async function PUT(
     }
     if (displayName !== undefined) updateData.displayName = displayName.trim();
     if (email !== undefined) {
-      const cleanEmail = String(email).trim().toLowerCase();
+      const cleanEmail = email === null ? null : String(email).trim().toLowerCase();
       if (cleanEmail) {
         try {
           const dupEmail = await prisma.user.findFirst({
@@ -115,6 +115,8 @@ export async function PUT(
           }
         } catch {}
         updateData.email = cleanEmail;
+      } else {
+        updateData.email = null;
       }
     }
     if (password !== undefined && String(password).trim().length > 0) {
@@ -204,7 +206,7 @@ export async function DELETE(
 
     // Safety checks
     // 1. Prevent deleting self
-    if (session.userId === id || session.email.toLowerCase() === id.toLowerCase()) {
+    if (session.userId === id || (session.email || '').toLowerCase() === id.toLowerCase()) {
       return NextResponse.json(
         { success: false, error: 'ไม่อนุญาตให้ลบบัญชีผู้ดูแลระบบที่กำลังเข้าสู่ระบบอยู่' },
         { status: 400 }

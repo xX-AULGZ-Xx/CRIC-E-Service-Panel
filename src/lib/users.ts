@@ -25,7 +25,7 @@ export function verifyUserPassword(plainPassword: string, storedHash: string | n
 export interface UserEntity {
   id: string;
   username: string;
-  email: string;
+  email: string | null;
   passwordHash: string | null;
   displayName: string;
   department: string | null;
@@ -242,7 +242,7 @@ export async function getAllUsers(filter?: { search?: string; role?: string; sta
       local = local.filter(
         (u) =>
           u.displayName.toLowerCase().includes(q) ||
-          u.email.toLowerCase().includes(q) ||
+          (u.email && u.email.toLowerCase().includes(q)) ||
           u.username.toLowerCase().includes(q) ||
           (u.department && u.department.toLowerCase().includes(q))
       );
@@ -269,7 +269,7 @@ export async function findUserByLoginIdentifier(identifier: string) {
   } catch {
     const local = await readLocalUsers();
     return local.find(
-      (u) => u.username.toLowerCase() === clean || u.email.toLowerCase() === clean
+      (u) => u.username.toLowerCase() === clean || (u.email || '').toLowerCase() === clean
     ) || null;
   }
 }
@@ -282,7 +282,7 @@ export async function findUserByEmail(email: string) {
     });
   } catch {
     const local = await readLocalUsers();
-    return local.find((u) => u.email.toLowerCase() === clean) || null;
+    return local.find((u) => (u.email || '').toLowerCase() === clean) || null;
   }
 }
 

@@ -284,17 +284,16 @@ export async function POST(req: NextRequest) {
       });
 
       const byUsername = new Map(existingUsers.map((u) => [u.username.toLowerCase(), u]));
-      const byEmail = new Map(existingUsers.map((u) => [u.email.toLowerCase(), u]));
+      const byEmail = new Map(
+        existingUsers.filter((u) => Boolean(u.email)).map((u) => [u.email!.toLowerCase(), u])
+      );
       const deptNameMap = new Map(bundle.departments.map((d) => [String(d.id), d.name]));
 
       const previewItems = bundle.users.map((u) => {
         const cleanUsername = String(u.username || '').trim().toLowerCase();
-        const autoEmail = !u.email || !String(u.email).trim();
-        const cleanEmail = autoEmail
-          ? `${cleanUsername}@cric.ac.th`
-          : String(u.email).trim().toLowerCase();
+        const cleanEmail = u.email && String(u.email).trim() ? String(u.email).trim().toLowerCase() : null;
 
-        const existing = byUsername.get(cleanUsername) || byEmail.get(cleanEmail);
+        const existing = byUsername.get(cleanUsername) || (cleanEmail ? byEmail.get(cleanEmail) : undefined);
         const rawDeptIds =
           Array.isArray(u.department_ids) && u.department_ids.length > 0
             ? u.department_ids
@@ -315,7 +314,7 @@ export async function POST(req: NextRequest) {
           username: cleanUsername,
           fullName: u.full_name,
           email: cleanEmail,
-          autoEmail,
+          autoEmail: false,
           role: mapPlanRoleToPanel(u.role),
           planRole: u.role || 'TEACHER',
           position: u.position || null,
@@ -368,13 +367,11 @@ export async function POST(req: NextRequest) {
         if (selectedSet && !selectedSet.has(cleanUsername)) continue;
 
         try {
-          const autoEmail = !u.email || !String(u.email).trim();
-          let cleanEmail = autoEmail
-            ? `${cleanUsername}@cric.ac.th`
-            : String(u.email).trim().toLowerCase();
+          let cleanEmail: string | null =
+            u.email && String(u.email).trim() ? String(u.email).trim().toLowerCase() : null;
 
           let existing = await prisma.user.findUnique({ where: { username: cleanUsername } });
-          if (!existing) {
+          if (!existing && cleanEmail) {
             existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
           }
 
@@ -383,10 +380,12 @@ export async function POST(req: NextRequest) {
             continue;
           }
 
-          // Guard email collision against another distinct user
-          const emailOwner = await prisma.user.findUnique({ where: { email: cleanEmail } });
-          if (emailOwner && (!existing || emailOwner.id !== existing.id)) {
-            cleanEmail = `${cleanUsername}.plan${String(u.id)}@cric.ac.th`;
+          // Guard email collision against another distinct user only when email is provided
+          if (cleanEmail) {
+            const emailOwner = await prisma.user.findUnique({ where: { email: cleanEmail } });
+            if (emailOwner && (!existing || emailOwner.id !== existing.id)) {
+              cleanEmail = null;
+            }
           }
 
           const rawDeptIds =

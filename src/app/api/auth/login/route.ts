@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
 
     let targetRole: UserRole | null = null;
     let customDisplayName: string | undefined;
-    let customEmail: string | undefined;
+    let customEmail: string | null | undefined;
     let isDemoLogin = false;
     let nativeToken: string | undefined;
     let sourceSubsystem: string | undefined;
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
         if (verifyUserPassword(password, dbUser.passwordHash) || (password === 'admin123' && dbUser.role === 'admin' && demoEnabled)) {
           targetRole = dbUser.role as UserRole;
           customDisplayName = dbUser.displayName;
-          customEmail = dbUser.email;
+          customEmail = dbUser.email ?? null;
           await recordUserLogin(dbUser.id);
         }
       }
@@ -240,7 +240,7 @@ export async function POST(req: NextRequest) {
 
           targetRole = mappedRole;
           customDisplayName = subUserObj.full_name || subUserObj.username || username;
-          customEmail = subUserObj.email || `${subUserObj.username || username}@cric.ac.th`;
+          customEmail = subUserObj.email ?? null;
           nativeToken = subsystemAuth.nativeToken;
           sourceSubsystem = subsystemAuth.sourceApp;
         }
@@ -265,7 +265,7 @@ export async function POST(req: NextRequest) {
       userId: subUserObj?.id ? String(subUserObj.id) : baseSession.userId,
       username: subUserObj?.username || username || baseSession.username,
       displayName: customDisplayName || baseSession.displayName,
-      email: customEmail || baseSession.email,
+      email: customEmail !== undefined ? customEmail : baseSession.email,
       avatarUrl: (subUserObj?.avatar_url) || baseSession.avatarUrl,
       currentRole: targetRole,
       roles: [targetRole],
