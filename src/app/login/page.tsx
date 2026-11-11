@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { formatUsernameHandle } from '@/lib/format';
 import { 
   ShieldAlert, 
   GraduationCap, 
@@ -467,7 +468,7 @@ function LoginContent() {
                     </span>
                   </div>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
-                    {existingUser.email || `@${existingUser.username}`}
+                    {existingUser.email || formatUsernameHandle(existingUser.username)}
                   </p>
                 </div>
               </div>

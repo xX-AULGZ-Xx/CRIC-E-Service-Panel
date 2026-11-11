@@ -14,6 +14,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { UserRole } from '@/types/service';
+import { formatUsernameHandle } from '@/lib/format';
 
 interface PlanImportModalProps {
   isOpen: boolean;
@@ -469,7 +470,7 @@ export default function PlanImportModal({ isOpen, onClose, onSuccess }: PlanImpo
                           <td className="py-2.5 px-3">
                             <div className="font-semibold text-neutral-900 dark:text-white">{item.fullName}</div>
                             <div className="text-[11px] font-mono text-neutral-500 flex items-center gap-1.5">
-                              <span>@{item.username}</span>
+                              <span>{formatUsernameHandle(item.username)}</span>
                               {item.email ? (
                                 <span>• {item.email}</span>
                               ) : (
@@ -566,7 +567,7 @@ export default function PlanImportModal({ isOpen, onClose, onSuccess }: PlanImpo
                 <div className="max-w-xl mx-auto text-left p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs space-y-1">
                   {resultErrors.map((e, idx) => (
                     <div key={idx} className="text-rose-700 dark:text-rose-300 font-mono">
-                      @{e.username}: {e.error}
+                      {formatUsernameHandle(e.username)}: {e.error}
                     </div>
                   ))}
                 </div>

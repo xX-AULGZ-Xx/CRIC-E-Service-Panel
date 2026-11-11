@@ -29,6 +29,7 @@ import { UserAccount, UserRole, DivisionItem } from '@/types/service';
 import { Crown, Server, Building2 } from 'lucide-react';
 import PlanUserFormModal from './PlanUserFormModal';
 import PlanImportModal from './PlanImportModal';
+import { formatUsernameHandle } from '@/lib/format';
 
 export default function AdminUsersManager() {
   const [users, setUsers] = useState<UserAccount[]>([]);
@@ -689,7 +690,7 @@ export default function AdminUsersManager() {
                             )}
                           </div>
                           <div className="text-[11px] font-mono text-neutral-500 flex items-center flex-wrap gap-1.5">
-                            <span>@{u.username}</span>
+                            <span title={u.username}>{formatUsernameHandle(u.username)}</span>
                             {u.position && (
                               <span className="font-sans text-neutral-500 dark:text-neutral-400">
                                 • {u.position}
@@ -873,7 +874,7 @@ export default function AdminUsersManager() {
             </div>
 
             <p className="text-xs text-neutral-500">
-              ตั้งรหัสผ่านใหม่สำหรับ <strong className="text-neutral-900 dark:text-white">{activeUser.displayName}</strong> (@{activeUser.username})
+              ตั้งรหัสผ่านใหม่สำหรับ <strong className="text-neutral-900 dark:text-white">{activeUser.displayName}</strong> ({formatUsernameHandle(activeUser.username)})
             </p>
 
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
@@ -942,7 +943,7 @@ export default function AdminUsersManager() {
 
             <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-xs space-y-1">
               <div><strong className="text-neutral-900 dark:text-white">ชื่อ:</strong> {activeUser.displayName}</div>
-              <div><strong className="text-neutral-900 dark:text-white">Username:</strong> @{activeUser.username}</div>
+              <div><strong className="text-neutral-900 dark:text-white">Username:</strong> {formatUsernameHandle(activeUser.username)}</div>
               <div><strong className="text-neutral-900 dark:text-white">อีเมล:</strong> {activeUser.email || 'ไม่มีอีเมล'}</div>
               <div><strong className="text-neutral-900 dark:text-white">บทบาท:</strong> {activeUser.role}</div>
             </div>

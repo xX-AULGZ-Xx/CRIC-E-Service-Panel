@@ -18,6 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { DivisionItem, UserAccount, UserRole } from '@/types/service';
+import { formatUsernameHandle } from '@/lib/format';
 
 interface PlanUserFormModalProps {
   isOpen: boolean;
@@ -294,7 +295,7 @@ export default function PlanUserFormModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-neutral-900 dark:text-white">
-                {mode === 'add' ? 'เพิ่มผู้ใช้งานใหม่' : `แก้ไขข้อมูลผู้ใช้งาน (@${activeUser?.username})`}
+                {mode === 'add' ? 'เพิ่มผู้ใช้งานใหม่' : `แก้ไขข้อมูลผู้ใช้งาน (${formatUsernameHandle(activeUser?.username)})`}
               </h3>
               <p className="text-[11px] text-neutral-500">
                 รองรับโครงสร้างบุคลากร ฝ่าย/แผนก และบทบาทระบบ Plan เชื่อมโยงกับ CRIC E-Service Panel

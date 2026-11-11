@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import AppLauncher from '@/components/launcher/AppLauncher';
 import ThemeToggleButton from '@/components/theme/ThemeToggleButton';
 import { UserSession, UserRole, SystemSetting } from '@/types/service';
+import { formatUsernameHandle } from '@/lib/format';
 import { 
   ShieldAlert, 
   GraduationCap, 
@@ -264,7 +265,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
                       {session.displayName}
                     </div>
                     <div className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1 mt-0.5">
-                      {session.email || `@${session.username}`}
+                      {session.email || formatUsernameHandle(session.username)}
                     </div>
                     <div className="mt-2">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border inline-flex items-center gap-1 ${currentRoleBadge.color}`}>
