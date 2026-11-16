@@ -16,10 +16,18 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
+    const syncSecret = process.env.PANEL_SYNC_SECRET || 'cric-panel-sync-secret-2026';
+    const authHeader = req.headers.get('authorization') || '';
+    const syncHeader = req.headers.get('x-cric-sync-key') || '';
+    const isTokenAuthorized = Boolean(
+      (syncHeader && syncHeader === syncSecret) ||
+      (authHeader && (authHeader === `Bearer ${syncSecret}` || authHeader === `Bearer ${process.env.PANEL_API_TOKEN || ''}`))
+    );
+
     const session = await getCurrentUserSession();
-    if (!session || !session.roles.includes('admin')) {
+    if (!isTokenAuthorized && (!session || !session.roles.includes('admin'))) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized: Admin role required' },
+        { success: false, error: 'Unauthorized: Admin role or valid sync key required' },
         { status: 403 }
       );
     }
