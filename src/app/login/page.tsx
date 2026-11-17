@@ -131,6 +131,14 @@ const CALLER_APPS: Record<string, CallerAppInfo> = {
     badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25',
     desc: 'บริการข้อมูลการศึกษา ผลการเรียน ตารางเรียน ตารางสอบ',
   },
+  edocx: {
+    id: 'edocx',
+    name: 'ระบบร่างเอกสารราชการและสารบรรณออนไลน์ (CRIC E-Docx)',
+    nameEn: 'CRIC E-Docx System',
+    icon: '📄',
+    badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/25',
+    desc: 'ระบบร่างหนังสือราชการ บันทึกข้อความ คำสั่ง และสารบรรณอิเล็กทรอนิกส์',
+  },
 };
 
 function getCookie(name: string): string | null {
@@ -171,12 +179,14 @@ function LoginContent() {
   if (appParam && CALLER_APPS[appParam]) {
     callerApp = CALLER_APPS[appParam];
   } else if (redirectUri) {
-    if (redirectUri.includes('plan.cric.ac.th') || redirectUri.includes(':8001')) {
+    if (redirectUri.includes('plan.cric.ac.th') || redirectUri.includes(':8001') || redirectUri.includes(':3005')) {
       callerApp = CALLER_APPS.plan;
     } else if (redirectUri.includes('rcms.cric.ac.th') || redirectUri.includes(':3001')) {
       callerApp = CALLER_APPS.rcms;
     } else if (redirectUri.includes('reg.cric.ac.th')) {
       callerApp = CALLER_APPS.reg;
+    } else if (redirectUri.includes('edocx.cric.ac.th') || redirectUri.includes(':3030')) {
+      callerApp = CALLER_APPS.edocx;
     }
   }
 
