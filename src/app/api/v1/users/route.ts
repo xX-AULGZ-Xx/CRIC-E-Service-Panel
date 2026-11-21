@@ -11,6 +11,7 @@ import {
   UserEntity 
 } from '@/lib/users';
 import { UserRole } from '@/types/service';
+import { syncUsersToEdocx } from '@/lib/edocx-sync';
 
 export const dynamic = 'force-dynamic';
 
@@ -198,10 +199,15 @@ export async function POST(req: NextRequest) {
       createdUser = newUser;
     }
 
+    const safeUser = sanitizeUser(createdUser);
+    if (safeUser && safeUser.role !== 'student') {
+      void syncUsersToEdocx('upsert', [safeUser]);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'สร้างผู้ใช้งานใหม่เรียบร้อยแล้ว',
-      data: sanitizeUser(createdUser),
+      data: safeUser,
     });
   } catch (error: any) {
     console.error('POST /api/v1/users error:', error);

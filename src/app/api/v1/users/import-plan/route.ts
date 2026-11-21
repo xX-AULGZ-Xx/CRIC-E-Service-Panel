@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUserSession } from '@/lib/auth';
-import { ensureDivisionsSeeded, hashUserPassword, saveUserDepartments } from '@/lib/users';
+import { ensureDivisionsSeeded, getAllUsers, hashUserPassword, saveUserDepartments } from '@/lib/users';
+import { syncUsersToEdocx } from '@/lib/edocx-sync';
 import { UserRole } from '@/types/service';
 
 export const dynamic = 'force-dynamic';
@@ -460,6 +461,12 @@ export async function POST(req: NextRequest) {
             error: err?.message || 'เกิดข้อผิดพลาดระหว่างนำเข้า',
           });
         }
+      }
+
+      if (created + updated > 0) {
+        getAllUsers()
+          .then((allUsers) => syncUsersToEdocx('upsert', allUsers.filter((u: any) => u.role !== 'student')))
+          .catch(() => {});
       }
 
       return NextResponse.json({

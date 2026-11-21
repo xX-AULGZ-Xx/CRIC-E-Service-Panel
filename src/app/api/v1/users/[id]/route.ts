@@ -9,6 +9,7 @@ import {
   saveUserDepartments,
 } from '@/lib/users';
 import { UserRole } from '@/types/service';
+import { syncUsersToEdocx } from '@/lib/edocx-sync';
 
 export const dynamic = 'force-dynamic';
 
@@ -182,10 +183,15 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'ไม่พบข้อมูลผู้ใช้ที่ต้องการแก้ไข' }, { status: 404 });
     }
 
+    const safeUser = sanitizeUser(updatedUser);
+    if (safeUser) {
+      void syncUsersToEdocx(safeUser.role === 'student' ? 'delete' : 'upsert', [safeUser]);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'อัปเดตข้อมูลผู้ใช้งานเรียบร้อยแล้ว',
-      data: sanitizeUser(updatedUser),
+      data: safeUser,
     });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -244,6 +250,10 @@ export async function DELETE(
       const local = await readLocalUsers();
       const filtered = local.filter((u) => u.id !== id);
       await writeLocalUsers(filtered);
+    }
+
+    if (targetUser) {
+      void syncUsersToEdocx('delete', [sanitizeUser(targetUser)]);
     }
 
     return NextResponse.json({
