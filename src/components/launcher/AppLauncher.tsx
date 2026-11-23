@@ -72,6 +72,16 @@ export default function AppLauncher({ currentRole, isLoggedIn, onServicesChange 
     fetchServices();
   }, [currentRole, isOpen]);
 
+  useEffect(() => {
+    const handleSessionUpdated = () => {
+      fetchServices();
+    };
+    window.addEventListener('cric:session-updated', handleSessionUpdated);
+    return () => {
+      window.removeEventListener('cric:session-updated', handleSessionUpdated);
+    };
+  }, [currentRole]);
+
   // Close on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

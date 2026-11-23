@@ -20,27 +20,46 @@ import {
   Building2,
   LogIn,
   Mail,
-  Phone
+  Phone,
+  RefreshCw
 } from 'lucide-react';
 
-export default function PortalDashboard() {
-  const [session, setSession] = useState<UserSession | null>(null);
-  const [services, setServices] = useState<ServiceItem[]>([]);
-  const [settings, setSettings] = useState<SystemSetting | null>(null);
-  const [loading, setLoading] = useState(true);
+interface PortalDashboardProps {
+  initialSession?: UserSession | null;
+  initialServices?: ServiceItem[];
+  initialSettings?: SystemSetting | null;
+}
+
+export default function PortalDashboard({
+  initialSession,
+  initialServices,
+  initialSettings,
+}: PortalDashboardProps) {
+  const hasInitialData = initialServices !== undefined;
+  const [session, setSession] = useState<UserSession | null>(initialSession ?? null);
+  const [services, setServices] = useState<ServiceItem[]>(initialServices ?? []);
+  const [settings, setSettings] = useState<SystemSetting | null>(initialSettings ?? null);
+  const [loading, setLoading] = useState<boolean>(!hasInitialData);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [scopeFilter, setScopeFilter] = useState<'all' | 'public' | 'internal'>('all');
   const [copiedEmbed, setCopiedEmbed] = useState(false);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const lastSyncAtRef = React.useRef<number>(hasInitialData ? Date.now() : 0);
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (opts?: { silent?: boolean }) => {
+    const silent = opts?.silent ?? false;
+    if (silent) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const [sessRes, srvRes, setRes] = await Promise.all([
-        fetch('/api/auth/session'),
-        fetch('/api/v1/services'),
-        fetch('/api/v1/settings'),
+        fetch('/api/auth/session', { cache: 'no-store' }),
+        fetch('/api/v1/services', { cache: 'no-store' }),
+        fetch('/api/v1/settings', { cache: 'no-store' }),
       ]);
       const sessData = await sessRes.json();
       const srvData = await srvRes.json();
@@ -49,16 +68,40 @@ export default function PortalDashboard() {
       if (sessData.success) setSession(sessData.data);
       if (srvData.success) setServices(srvData.data);
       if (setData.success) setSettings(setData.data);
+      lastSyncAtRef.current = Date.now();
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (!hasInitialData) {
+      loadData();
+    }
+
+    const handleSessionUpdated = () => {
+      loadData({ silent: true });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const elapsed = Date.now() - lastSyncAtRef.current;
+        if (elapsed >= 30_000) {
+          loadData({ silent: true });
+        }
+      }
+    };
+
+    window.addEventListener('cric:session-updated', handleSessionUpdated);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('cric:session-updated', handleSessionUpdated);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [hasInitialData]);
 
   const toggleFavorite = async (serviceId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -134,7 +177,12 @@ export default function PortalDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0b0c] text-neutral-900 dark:text-neutral-100 flex flex-col justify-between transition-colors duration-200">
       {/* Top Navbar */}
-      <Navbar settings={settings} onSearchChange={(q) => setSearchQuery(q)} onRoleChange={() => loadData()} />
+      <Navbar
+        settings={settings}
+        initialSession={session}
+        onSearchChange={(q) => setSearchQuery(q)}
+        onRoleChange={() => loadData({ silent: true })}
+      />
 
       {/* Admin Maintenance Mode Notice Banner */}
       {settings?.maintenanceMode && session?.currentRole === 'admin' && (
@@ -415,9 +463,21 @@ export default function PortalDashboard() {
                 ? 'รายการโปรดของคุณ'
                 : `หมวดหมู่: ${selectedCategory}`}
             </h2>
-            <span className="text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
-              พบ {filteredServices.length} บริการ
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
+                พบ {filteredServices.length} บริการ
+              </span>
+              <button
+                type="button"
+                onClick={() => loadData({ silent: true })}
+                disabled={refreshing || loading}
+                title="รีเฟรชรายการบริการ"
+                aria-label="รีเฟรชรายการบริการ"
+                className="p-1.5 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
 
           {loading ? (

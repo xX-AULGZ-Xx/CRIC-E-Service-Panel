@@ -23,15 +23,18 @@ import {
 
 interface NavbarProps {
   settings?: SystemSetting | null;
+  initialSession?: UserSession | null;
   onRoleChange?: (role: UserRole) => void;
   onSearchChange?: (query: string) => void;
 }
 
-export default function Navbar({ settings, onRoleChange, onSearchChange }: NavbarProps) {
+export default function Navbar({ settings, initialSession, onRoleChange, onSearchChange }: NavbarProps) {
   const router = useRouter();
-  const [session, setSession] = useState<UserSession | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [demoMode, setDemoMode] = useState<boolean>(true);
+  const [session, setSession] = useState<UserSession | null>(initialSession ?? null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
+    Boolean(initialSession && initialSession.currentRole !== 'guest')
+  );
+  const [demoMode, setDemoMode] = useState<boolean>(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,7 +43,7 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
 
   const fetchSession = async () => {
     try {
-      const res = await fetch('/api/auth/session');
+      const res = await fetch('/api/auth/session', { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
         setSession(data.data);
@@ -55,7 +58,21 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
   };
 
   useEffect(() => {
+    if (initialSession !== undefined) {
+      setSession(initialSession);
+      setIsLoggedIn(Boolean(initialSession && initialSession.currentRole !== 'guest'));
+    }
+  }, [initialSession]);
+
+  useEffect(() => {
     fetchSession();
+    const handleSessionUpdated = () => {
+      fetchSession();
+    };
+    window.addEventListener('cric:session-updated', handleSessionUpdated);
+    return () => {
+      window.removeEventListener('cric:session-updated', handleSessionUpdated);
+    };
   }, []);
 
   // Close profile dropdown on click outside
@@ -85,7 +102,15 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
         setSession(data.data);
         setRoleDropdownOpen(false);
         onRoleChange?.(newRole);
-        window.location.reload();
+        window.dispatchEvent(new CustomEvent('cric:session-updated'));
+        try {
+          if ('BroadcastChannel' in window) {
+            const ch = new BroadcastChannel('cric_sso_channel');
+            ch.postMessage({ type: 'ROLE_CHANGE' });
+            ch.close();
+          }
+        } catch {}
+        router.refresh();
       }
     } catch (e) {
       console.error('Failed to switch role', e);

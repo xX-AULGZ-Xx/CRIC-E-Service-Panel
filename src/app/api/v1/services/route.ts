@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUserSession, isUserAuthorizedForService } from '@/lib/auth';
-import { readFile, writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-
-const DATA_DIR = path.join(process.cwd(), 'data');
-const SERVICES_FILE = path.join(DATA_DIR, 'services.json');
+import { getCurrentUserSession } from '@/lib/auth';
+import { getServicesForRole, readLocalServices, writeLocalServices } from '@/lib/services';
 
 function getCorsHeaders(req: NextRequest) {
   const origin = req.headers.get('origin') || req.headers.get('referer') || '';
@@ -41,62 +37,13 @@ export async function OPTIONS(req: NextRequest) {
   });
 }
 
-async function readLocalServices(): Promise<any[]> {
-  try {
-    const raw = await readFile(SERVICES_FILE, 'utf-8');
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
-}
-
-async function writeLocalServices(data: any[]) {
-  try {
-    await mkdir(DATA_DIR, { recursive: true });
-    await writeFile(SERVICES_FILE, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Failed to write local services fallback', err);
-  }
-}
-
 export async function GET(req: NextRequest) {
   const corsHeaders = getCorsHeaders(req);
   try {
     const { searchParams } = new URL(req.url);
     const session = await getCurrentUserSession();
     const isManageMode = searchParams.get('all') === 'true';
-    const isLauncherMode = searchParams.get('launcher') === 'true';
     const filterRole = searchParams.get('role') || session?.currentRole || 'guest';
-
-    let services: any[] = [];
-
-    try {
-      services = await prisma.service.findMany({
-        orderBy: [
-          { sortOrder: 'asc' },
-          { createdAt: 'desc' },
-        ],
-        include: {
-          category: true,
-          userFavorites: session?.userId ? {
-            where: {
-              userId: session.userId,
-            },
-          } : false,
-        },
-      });
-      // Sync database state to local storage backup
-      await writeLocalServices(services);
-    } catch (dbErr: any) {
-      console.warn('Database query failed, reading from local storage:', dbErr.message);
-      services = await readLocalServices();
-    }
-
-    const enriched = services.map((s) => ({
-      ...s,
-      isFavorite: s.userFavorites?.length > 0 || (s.isDefaultFavorite && (!s.userFavorites || s.userFavorites.length === 0)),
-      favoriteOrder: s.userFavorites?.[0]?.sortOrder ?? (s.isDefaultFavorite ? s.sortOrder : 999),
-    }));
 
     const responseHeaders = {
       ...corsHeaders,
@@ -106,27 +53,25 @@ export async function GET(req: NextRequest) {
       'Vary': 'Origin',
     };
 
+    const resultServices = await getServicesForRole({
+      role: filterRole,
+      userId: session?.userId,
+      includeAll: isManageMode,
+    });
+
     if (isManageMode) {
       return NextResponse.json({
         success: true,
-        count: enriched.length,
-        data: enriched,
+        count: resultServices.length,
+        data: resultServices,
       }, { headers: corsHeaders });
     }
-
-    // Filter active services based on RBAC permissions:
-    // When user is unauthenticated or guest, only public services (allowedRoles includes 'guest' or empty) are returned.
-    // When authenticated (student, teacher, staff, admin), services permitted for their role are returned.
-    const visibleServices = enriched.filter((service) => {
-      if (!service.isActive) return false;
-      return isUserAuthorizedForService([filterRole], service.allowedRoles);
-    });
 
     return NextResponse.json({
       success: true,
       role: filterRole,
-      count: visibleServices.length,
-      data: visibleServices,
+      count: resultServices.length,
+      data: resultServices,
     }, { headers: responseHeaders });
   } catch (error: any) {
     console.error('Error fetching services:', error);

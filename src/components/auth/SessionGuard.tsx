@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -13,6 +13,7 @@ function getCookie(name: string): string | null {
 
 export default function SessionGuard() {
   const pathname = usePathname();
+  const router = useRouter();
   const wasLoggedInRef = useRef<boolean>(false);
   const lastRoleRef = useRef<string | null>(null);
   const lastProfileRef = useRef<string | null>(null);
@@ -24,6 +25,9 @@ export default function SessionGuard() {
       return;
     }
 
+    // Reset transition lock on route change
+    isTransitioningRef.current = false;
+
     // Check initial session state
     const loggedInCookie = getCookie('cric_logged_in');
     const ssoCookie = getCookie('cric_sso_session');
@@ -33,14 +37,22 @@ export default function SessionGuard() {
     lastRoleRef.current = getCookie('cric_active_role');
     lastProfileRef.current = getCookie('cric_user_profile');
 
+    const triggerSoftSync = () => {
+      window.dispatchEvent(new CustomEvent('cric:session-updated'));
+      router.refresh();
+    };
+
     const handleLoggedIn = () => {
       if (isTransitioningRef.current) return;
-      isTransitioningRef.current = true;
-      console.log('[Session Guard] New Central session detected! Synchronizing Portal view...');
+      wasLoggedInRef.current = true;
+      lastRoleRef.current = getCookie('cric_active_role');
+      lastProfileRef.current = getCookie('cric_user_profile');
+
       if (pathname === '/login') {
+        isTransitioningRef.current = true;
         window.location.href = '/';
       } else {
-        window.location.reload();
+        triggerSoftSync();
       }
     };
 
@@ -48,7 +60,6 @@ export default function SessionGuard() {
       if (isTransitioningRef.current) return;
       if (pathname === '/login') return;
       if (wasLoggedInRef.current) {
-        console.warn('[Session Guard] Central SSO session was terminated. Redirecting to login...');
         isTransitioningRef.current = true;
         wasLoggedInRef.current = false;
         window.location.href = '/login?expired=1';
@@ -57,9 +68,9 @@ export default function SessionGuard() {
 
     const handleSessionChange = () => {
       if (isTransitioningRef.current) return;
-      console.log('[Session Guard] User role or profile changed in another app. Reloading...');
-      isTransitioningRef.current = true;
-      window.location.reload();
+      lastRoleRef.current = getCookie('cric_active_role');
+      lastProfileRef.current = getCookie('cric_user_profile');
+      triggerSoftSync();
     };
 
     // 1. Cross-tab communication via BroadcastChannel
@@ -92,7 +103,7 @@ export default function SessionGuard() {
     };
     window.addEventListener('storage', handleStorageChange);
 
-    // 3. Check cookies directly (runs even in background tabs and on focus)
+    // 3. Check cookies directly (runs on focus / visible / polling)
     const verifySessionCookies = () => {
       if (isTransitioningRef.current) return;
 
@@ -125,15 +136,19 @@ export default function SessionGuard() {
       }
     };
 
-    // 4. On window focus & visibility change
+    // 4. On window focus & visibility change (only when tab becomes visible)
     const handleFocus = () => verifySessionCookies();
-    const handleVisibilityChange = () => verifySessionCookies();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        verifySessionCookies();
+      }
+    };
 
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // 5. Periodic polling interval (every 3 seconds)
-    const interval = setInterval(verifySessionCookies, 3000);
+    // 5. Periodic polling interval (every 5 seconds)
+    const interval = setInterval(verifySessionCookies, 5000);
 
     return () => {
       if (channel) {
@@ -144,7 +159,7 @@ export default function SessionGuard() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearInterval(interval);
     };
-  }, [pathname]);
+  }, [pathname, router]);
 
   return null;
 }
