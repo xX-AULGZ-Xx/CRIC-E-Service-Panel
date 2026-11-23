@@ -359,27 +359,23 @@ function LoginContent() {
     (settings ? settings.demoModeEnabled !== false : true);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0b0c] text-neutral-900 dark:text-neutral-100 flex flex-col justify-between selection:bg-blue-600 selection:text-white relative overflow-hidden transition-colors duration-200">
-      {/* Dynamic Background Ambient Gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-gradient-to-b from-blue-500/15 via-indigo-500/10 to-transparent dark:from-blue-600/20 dark:via-indigo-600/15 blur-[140px] pointer-events-none" />
-      <div className="absolute -bottom-32 right-1/4 w-[500px] h-[400px] bg-sky-500/10 dark:bg-sky-500/5 blur-[120px] pointer-events-none" />
-
+    <div className="min-h-dvh bg-slate-50 dark:bg-[#0a0b0c] text-neutral-900 dark:text-neutral-100 flex flex-col justify-between selection:bg-blue-600 selection:text-white relative transition-colors duration-200">
       {/* Top Header */}
-      <header className="relative z-10 w-full px-6 py-4 flex items-center justify-between border-b border-neutral-200/80 dark:border-neutral-800/60 bg-white/70 dark:bg-[#0e0f10]/70 backdrop-blur-md">
+      <header className="relative z-10 w-full px-6 py-4 flex items-center justify-between border-b border-neutral-200/80 dark:border-neutral-800/60 bg-white dark:bg-[#0e0f10]">
         <Link href="/" className="flex items-center gap-3 group">
           {settings?.logoUrl ? (
             <img
               src={settings.logoUrl}
               alt="Logo"
-              className="w-9 h-9 object-contain group-hover:scale-105 transition-transform"
+              className="size-9 object-contain group-hover:scale-105 transition-transform"
             />
           ) : (
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center font-bold text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+            <div className="size-9 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white shadow-sm group-hover:scale-105 transition-transform">
               C
             </div>
           )}
           <div>
-            <div className="font-semibold text-neutral-900 dark:text-white tracking-tight text-sm flex items-center gap-1.5">
+            <div className="font-semibold text-neutral-900 dark:text-white text-sm flex items-center gap-1.5">
               <span>{settings?.portalTitle || 'CRIC E-Service'}</span>
               <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
                 SSO
@@ -393,7 +389,7 @@ function LoginContent() {
 
         <div className="flex items-center gap-3">
           <div className="text-xs text-neutral-500 dark:text-neutral-400 hidden sm:flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
+            <span className="size-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
             <span>ระบบยืนยันตัวตนกลาง (Central Identity)</span>
           </div>
           <ThemeToggleButton />
@@ -408,22 +404,22 @@ function LoginContent() {
             <Sparkles className="w-3.5 h-3.5" />
             <span>Single Sign-On Portal (เข้าใช้งานทุกระบบด้วยบัญชีเดียว)</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold text-balance text-neutral-900 dark:text-white">
             เข้าสู่ระบบบริการดิจิทัล
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
+          <p className="text-xs sm:text-sm text-pretty text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
             {settings?.collegeNameTh || 'วิทยาลัยการอาชีพเชียงราย'} — One Account for All Services
           </p>
         </div>
 
         {/* Caller Application Context Banner */}
         {callerApp && (
-          <div className="mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-sky-500/10 border border-blue-500/25 flex items-center gap-3.5 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-white dark:bg-neutral-800 shadow-sm flex items-center justify-center text-xl shrink-0">
+          <div className="mb-4 p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 flex items-center gap-3.5 shadow-sm">
+            <div className="size-10 rounded-xl bg-white dark:bg-neutral-800 shadow-sm flex items-center justify-center text-xl shrink-0">
               {callerApp.icon}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+              <div className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 uppercase flex items-center gap-1.5">
                 <span>กำลังเข้าสู่ระบบเพื่อใช้งาน</span>
               </div>
               <p className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white truncate">
@@ -436,8 +432,8 @@ function LoginContent() {
           </div>
         )}
 
-        {/* 1-Page Minimalist Glassmorphism Card */}
-        <div className="bg-white/85 dark:bg-[#131417]/85 backdrop-blur-2xl border border-neutral-200/90 dark:border-neutral-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-blue-500/5 dark:shadow-black/60 space-y-6 transition-all duration-200">
+        {/* 1-Page Minimalist Card */}
+        <div className="bg-white dark:bg-[#131417] border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6 transition-colors duration-200">
           
           {/* CASE A: Active Session Found -> Account Confirmation / Selector */}
           {existingUser ? (

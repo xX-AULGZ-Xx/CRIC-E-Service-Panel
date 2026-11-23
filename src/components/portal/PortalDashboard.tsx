@@ -157,20 +157,20 @@ export default function PortalDashboard() {
       {/* Main Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Welcome Hero Banner */}
-        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-50 via-indigo-50/50 to-white dark:from-blue-900/40 dark:via-indigo-900/30 dark:to-purple-900/20 border border-blue-200/60 dark:border-neutral-800 p-4 sm:p-8 backdrop-blur-sm shadow-sm transition-colors duration-200">
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-blue-50/70 dark:bg-blue-950/25 border border-blue-200/80 dark:border-blue-900/40 p-4 sm:p-8 shadow-sm transition-colors duration-200">
           <div className="relative z-10 max-w-2xl space-y-2">
             <div className="inline-flex items-center gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-[11px] sm:text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
               <span>{settings?.collegeNameTh || 'วิทยาลัยการอาชีพเชียงราย'}</span>
             </div>
 
-            <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-neutral-900 dark:text-white">
+            <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-balance text-neutral-900 dark:text-white">
               {session?.displayName
                 ? `ยินดีต้อนรับ, ${session.displayName}`
                 : `ยินดีต้อนรับสู่ ${settings?.portalTitle || 'CRIC E-Service Panel'}`}
             </h1>
 
-            <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-pretty text-neutral-600 dark:text-neutral-300 leading-relaxed">
               {settings?.portalSubtitle ||
                 'ศูนย์รวมระบบบริการดิจิทัล วิทยาลัยการอาชีพเชียงราย เข้าสู่ระบบด้วยบัญชีสถาบันเพื่อเข้าถึงบริการทั้งหมด'}
             </p>
@@ -179,7 +179,7 @@ export default function PortalDashboard() {
               {settings?.showEmbedWidgetSnippet !== false && (
                 <button
                   onClick={() => setShowEmbedModal(true)}
-                  className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-neutral-900/90 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 text-xs font-medium shadow-sm transition-all"
+                  className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-neutral-900/90 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 text-xs font-medium shadow-sm transition-colors"
                 >
                   <Code className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                   <span className="hidden sm:inline">โค้ดเมนู 9 จุด (App Launcher)</span>
@@ -190,7 +190,7 @@ export default function PortalDashboard() {
               {session?.currentRole === 'admin' && (
                 <Link
                   href="/admin/services"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-sm transition-all"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-sm transition-colors"
                 >
                   <Settings className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">จัดการบริการ & ตั้งค่า (Admin Panel)</span>
@@ -199,16 +199,13 @@ export default function PortalDashboard() {
               )}
             </div>
           </div>
-
-          {/* Decorative Background Blob */}
-          <div className="absolute right-0 top-0 -mt-10 -mr-10 w-96 h-96 bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
         </div>
 
         {/* Quick Favorites Section */}
         {session && favorites.length > 0 && (
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold tracking-wide text-neutral-700 dark:text-neutral-300 uppercase flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-balance text-neutral-700 dark:text-neutral-300 uppercase flex items-center gap-2">
                 <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
                 <span>บริการโปรดของคุณ (Your Favorites)</span>
               </h2>
@@ -240,23 +237,23 @@ export default function PortalDashboard() {
 
         {/* Guest Mode Callout Banner */}
         {(!session || session.currentRole === 'guest') && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-gradient-to-r from-teal-500/10 via-sky-500/10 to-blue-500/10 border border-teal-500/20 text-neutral-800 dark:text-neutral-200 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-teal-50/70 dark:bg-teal-950/25 border border-teal-200/80 dark:border-teal-800/50 text-neutral-800 dark:text-neutral-200 shadow-xs">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+              <div className="size-10 rounded-2xl bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
                 <Globe className="w-5 h-5" />
               </div>
               <div>
                 <div className="text-xs font-semibold text-teal-800 dark:text-teal-300 flex items-center gap-1.5">
                   <span>บริการสำหรับบุคคลทั่วไป (Guest View)</span>
                 </div>
-                <div className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
+                <div className="text-xs text-pretty text-neutral-600 dark:text-neutral-400 mt-0.5">
                   แสดงเฉพาะบริการสาธารณะ สำหรับนักเรียน นักศึกษา และบุคลากร กรุณาเข้าสู่ระบบเพื่อใช้งานบริการภายในสถานศึกษา
                 </div>
               </div>
             </div>
             <Link
               href="/login"
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all shrink-0 hover:scale-102"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-colors shrink-0"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>เข้าสู่ระบบ</span>
@@ -411,22 +408,39 @@ export default function PortalDashboard() {
         {/* Services Grid */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-neutral-900 dark:text-white">
+            <h2 className="text-base font-semibold text-balance text-neutral-900 dark:text-white">
               {selectedCategory === 'all'
                 ? 'รายการบริการที่พร้อมใช้งาน'
                 : selectedCategory === 'favorites'
                 ? 'รายการโปรดของคุณ'
                 : `หมวดหมู่: ${selectedCategory}`}
             </h2>
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">
+            <span className="text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
               พบ {filteredServices.length} บริการ
             </span>
           </div>
 
           {loading ? (
-            <div className="py-24 text-center text-neutral-400">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-xs">กำลังโหลดรายการบริการ...</p>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4" aria-label="กำลังโหลดรายการบริการ">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col justify-between p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-neutral-900/60 border border-neutral-200 dark:border-neutral-800/80 shadow-2xs sm:shadow-sm animate-pulse"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                      <div className="size-10 sm:size-14 rounded-xl sm:rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
+                      <div className="h-5 w-16 rounded-full bg-neutral-200 dark:bg-neutral-800" />
+                    </div>
+                    <div className="h-4 w-3/4 rounded bg-neutral-200 dark:bg-neutral-800 mb-2" />
+                    <div className="h-3 w-full rounded bg-neutral-100 dark:bg-neutral-800/60" />
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800/60 hidden sm:flex items-center justify-between">
+                    <div className="h-3 w-24 rounded bg-neutral-100 dark:bg-neutral-800/60" />
+                    <div className="h-7 w-20 rounded-xl bg-neutral-200 dark:bg-neutral-800" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredServices.length === 0 ? (
             <div className="p-12 text-center rounded-3xl bg-white dark:bg-neutral-900/40 border border-neutral-200 dark:border-neutral-800/80 shadow-sm">
@@ -491,6 +505,7 @@ export default function PortalDashboard() {
                           <button
                             onClick={(e) => toggleFavorite(service.id, e)}
                             title={service.isFavorite ? 'นำออกจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
+                            aria-label={service.isFavorite ? 'นำออกจากรายการโปรด' : 'เพิ่มในรายการโปรด'}
                             className="p-1 sm:p-1.5 rounded-full text-neutral-400 hover:text-amber-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                           >
                             <Star

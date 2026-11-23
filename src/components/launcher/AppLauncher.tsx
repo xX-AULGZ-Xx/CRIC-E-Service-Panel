@@ -173,7 +173,7 @@ export default function AppLauncher({ currentRole, isLoggedIn, onServicesChange 
                 <span className="text-[15px] sm:text-[17px] font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
                   {isGuest ? 'บริการของวิทยาลัย' : 'รายการโปรด'}
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-normal">
+                <span className="text-xs tabular-nums px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-normal">
                   {isGuest ? services.length : favoriteServices.length}
                 </span>
               </div>
@@ -376,7 +376,7 @@ function ServiceLauncherItem({
             }}
           />
         ) : (
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-sm">
+          <div className="size-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm">
             <Globe className="w-5 h-5" />
           </div>
         )}

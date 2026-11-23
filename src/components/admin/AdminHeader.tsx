@@ -57,12 +57,13 @@ export default function AdminHeader() {
             href="/"
             className="p-2.5 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors shadow-sm"
             title="กลับหน้า Portal"
+            aria-label="กลับหน้า Portal"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+              <h1 className="text-xl sm:text-2xl font-bold text-balance text-neutral-900 dark:text-white">
                 ผู้ดูแลระบบ CRIC E-Service
               </h1>
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1">
@@ -70,7 +71,7 @@ export default function AdminHeader() {
                 Admin Backoffice
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
+            <p className="text-xs sm:text-sm text-pretty text-neutral-500 dark:text-neutral-400 mt-0.5">
               ศูนย์ควบคุมและกำหนดค่านโยบายบริการภายในวิทยาลัย CRIC
             </p>
           </div>

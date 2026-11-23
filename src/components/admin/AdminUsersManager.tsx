@@ -585,6 +585,7 @@ export default function AdminUsersManager() {
             disabled={loading}
             className="p-2 bg-white dark:bg-[#141517] hover:bg-neutral-50 dark:hover:bg-neutral-850 border border-neutral-200 dark:border-neutral-800 rounded-xl text-neutral-700 dark:text-neutral-300 transition-colors shadow-sm disabled:opacity-50"
             title="รีเฟรชข้อมูล"
+            aria-label="รีเฟรชข้อมูล"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -788,6 +789,7 @@ export default function AdminUsersManager() {
                           }}
                           className="p-1.5 rounded-lg text-neutral-500 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors"
                           title="เปลี่ยนรหัสผ่าน"
+                          aria-label="เปลี่ยนรหัสผ่าน"
                         >
                           <Key className="w-4 h-4" />
                         </button>
@@ -801,6 +803,7 @@ export default function AdminUsersManager() {
                           }}
                           className="p-1.5 rounded-lg text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
                           title="แก้ไขข้อมูล"
+                          aria-label="แก้ไขข้อมูล"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
@@ -814,6 +817,7 @@ export default function AdminUsersManager() {
                           }}
                           className="p-1.5 rounded-lg text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                           title="ลบผู้ใช้"
+                          aria-label="ลบผู้ใช้"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

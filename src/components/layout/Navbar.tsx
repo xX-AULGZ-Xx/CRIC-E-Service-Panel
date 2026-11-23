@@ -155,12 +155,12 @@ export default function Navbar({ settings, onRoleChange, onSearchChange }: Navba
                 className="w-9 h-9 sm:w-10 sm:h-10 object-contain group-hover:scale-105 transition-transform duration-200"
               />
             ) : (
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
-                <span className="font-bold text-white text-base sm:text-lg tracking-wider">C</span>
+              <div className="size-9 sm:size-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200">
+                <span className="font-bold text-white text-base sm:text-lg">C</span>
               </div>
             )}
             <div>
-              <div className="font-semibold text-neutral-900 dark:text-white tracking-tight text-xs sm:text-[15px] flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
+              <div className="font-semibold text-neutral-900 dark:text-white text-xs sm:text-[15px] flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
                 <span>{settings?.portalTitle || 'CRIC E-Service'}</span>
                 <span className="text-[9px] sm:text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/15 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30">
                   Panel

@@ -492,6 +492,7 @@ export default function AdminServicesManager() {
                         onClick={() => openEditModal(srv)}
                         className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                         title="แก้ไขบริการ"
+                        aria-label="แก้ไขบริการ"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
@@ -499,6 +500,7 @@ export default function AdminServicesManager() {
                         onClick={() => handleDelete(srv.id, srv.title)}
                         className="p-1.5 rounded-lg text-neutral-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-neutral-800 transition-colors"
                         title="ลบบริการ"
+                        aria-label="ลบบริการ"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
